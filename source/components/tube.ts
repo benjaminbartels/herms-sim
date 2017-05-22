@@ -1,100 +1,125 @@
 import * as PIXI from "pixi.js";
+import { Liquid } from "./enums";
 
 class Tube {
     public name: string;
     public position: [number, number];
-    public componentA: any;
-    public componentB: any;
-    public state: string;
-    public liquid: string;
-    public componentAPort: [number, number];
-    public componentBPort: [number, number];
+    public liquid: Liquid;
+    public component1: any;
+    public component2: any;
+    public component1Pressure: number;
+    public component2Pressure: number;
+    public component1Port: [number, number];
+    public component2Port: [number, number];
     private g: PIXI.Graphics;
 
     constructor(name: string, app: PIXI.Application) {
         this.name = name;
-        this.state = "none";
+        this.liquid = Liquid.None;
+        this.component1Pressure = 0;
+        this.component2Pressure = 0;
         this.g = new PIXI.Graphics;
         app.stage.addChild(this.g);
     }
 
+    public draw() {
+        console.log("draw called on", this.name);
+        this.g.clear();
+        this.g.lineStyle(3, this.liquid);
+        this.g.moveTo(this.component1Port[0], this.component1Port[1]);
+        this.g.lineTo(this.component2Port[0], this.component2Port[1]);
+    }
+
+    public connectToA(component: any, port: [number, number]) {
+        this.component1 = component;
+        this.component1Port = port;
+
+        if (this.component1 != null && this.component2 != null) {
+            this.draw();
+        }
+    }
+
+    public connectToB(component: any, port: [number, number]) {
+        this.component2 = component;
+        this.component2Port = port;
+
+        if (this.component1 != null && this.component2 != null) {
+            this.draw();
+        }
+    }
 
     public fill(source: any) {
-
         console.log("fill called on", this.name);
 
-        this.state = "filling";
         this.liquid = source.liquid;
         this.draw();
 
-        if (this.componentA.name === source.name) {
-            this.componentB.fill(this);
-        } else if (this.componentB.name === source.name) {
-            this.componentA.fill(this);
+        if (this.component1.name === source.name) {
+            if (this.component1Pressure !== 1) {
+                this.component1Pressure = 1;
+                this.component2.fill(this);
+            }
+        } else if (this.component2.name === source.name) {
+            if (this.component2Pressure !== 1) {
+                this.component2Pressure = 1;
+                this.component1.fill(this);
+            }
         }
     }
 
     public suck(source: any) {
-        console.log("suck called on", this.name);
-        this.state = "sucking";
-        let result = null;
-        if (this.componentA.name === source.name) {
-            result = this.componentB.suck(this);
-            if (result != null) {
-                this.liquid = result.liquid;
+        console.log("suck called on", this.name, "from", source.name);
+
+        if (this.component1.name === source.name) {
+            if (this.component1Pressure !== -1) {
+                this.component1Pressure = -1;
+                this.component2.suck(this);
             }
-        } else if (this.componentB.name === source.name) {
-            result = this.componentB.suck(this);
-            if (result != null) {
-                this.liquid = result.liquid;
+        } else if (this.component2.name === source.name) {
+            if (this.component2Pressure !== -1) {
+                this.component2Pressure = -1;
+                this.component1.suck(this);
             }
         }
-        console.log(this.name + " returning " + this.liquid);
-        this.draw();
-        return result;
     }
 
-    public stopAffecting(source: any) {
+    public stop(source: any) {
+        console.log("stop called on", this.name);
 
-        console.log("stopAffecting called on", this.name);
-
-        this.state = "none";
-        this.liquid = "none";
+        this.liquid = Liquid.None;
         this.draw();
 
-        if (this.componentA.name === source.name) {
-            this.componentB.stopAffecting(this);
-            return;
-        } else if (this.componentB.name === source.name) {
-            this.componentA.stopAffecting(this);
-            return;
+        if (this.component1.name === source.name) {
+            if (this.component1Pressure !== 0) {
+                this.component1Pressure = 0;
+                this.component2.stop(this);
+            }
+        } else if (this.component2.name === source.name) {
+            if (this.component2Pressure !== 0) {
+                this.component2Pressure = 0;
+                this.component1.stop(this);
+            }
         }
     }
 
-    public connectToA(component: any, port: [number, number]) {
-        this.componentA = component;
-        this.componentAPort = port;
-    }
+    public notify(source: any) {
+        console.log("notify called on", this.name);
+        this.liquid = source.liquid;
+        this.draw();
 
-    public connectToB(component: any, port: [number, number]) {
-        this.componentB = component;
-        this.componentBPort = port;
-    }
-
-    public draw() {
-
-        console.log("draw called on", this.name);
-
-        this.g.clear();
-
-        if (this.liquid === "water") {
-            this.g.lineStyle(3, 0x0074D9);
-        } else {
-            this.g.lineStyle(3, 0xAAAAAA);
+        if (this.component1.name === source.name) {
+            if (this.component2Pressure === -1) {
+                this.component2.notify(this);
+            } else if (this.component1Pressure === 1) {
+                this.component2.notify(this);
+            }
+        } else if (this.component2.name === source.name) {
+            if (this.component1Pressure === -1) {
+                this.component1.notify(this);
+            } else if (this.component2Pressure === 1) {
+                this.component1.notify(this);
+            }
         }
-
-        this.g.moveTo(this.componentAPort[0], this.componentAPort[1]);
-        this.g.lineTo(this.componentBPort[0], this.componentBPort[1]);
     }
 }
 

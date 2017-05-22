@@ -1,65 +1,200 @@
 import * as PIXI from "pixi.js";
+import { Liquid, Orientation } from "./enums";
 
-class Valve {
+class BallValve {
     public name: string;
     public position: [number, number];
-    public componentA: any;
-    public componentB: any;
-    public width: number;
-    public height: number;
-    public state: string;
-    public liquid: string;
+    public orientation: Orientation;
+    public isMotorized: boolean;
+    public liquid: Liquid;
+    public component1: any;
+    public component2: any;
+    public component1Pressure: number;
+    public component2Pressure: number;
+    public component1Port: [number, number];
+    public component2Port: [number, number];
     public isOpen: boolean;
-    public componentAPort: [number, number];
-    public componentBPort: [number, number];
     private g: PIXI.Graphics;
+    private readonly width = 40;
+    private readonly height = 20;
+    private readonly openColor = 0x2ECC40;      // Green
+    private readonly closedColor = 0x85144b;    // Maroon
+    private readonly unpoweredColor = 0x001F3F; // Navy
+    private readonly poweredColor = 0xFFDC00;   // Yellow
 
-    constructor(name: string, position: [number, number], app: PIXI.Application) {
+    constructor(name: string, position: [number, number], orientation: Orientation, isMotorized: boolean,
+        app: PIXI.Application) {
         this.name = name;
         this.position = position;
-        this.width = 40;
-        this.height = 20;
-        this.state = "none";
-        this.liquid = "none";
-        this.componentAPort = [position[0] + 0, position[1] + 10];
-        this.componentBPort = [position[0] + 40, position[1] + 10];
+        this.orientation = orientation;
+        this.isMotorized = isMotorized;
+        this.liquid = Liquid.None;
+        this.component1Pressure = 0;
+        this.component2Pressure = 0;
         this.g = new PIXI.Graphics;
-        this.g.interactive = true;
-        this.g.buttonMode = true;
-        this.g.on("pointerdown", () => { this.toggle(); });
+        if (!isMotorized) {
+            this.g.interactive = true;
+            this.g.buttonMode = true;
+            this.g.on("pointerdown", () => { this.toggle(); });
+        }
         app.stage.addChild(this.g);
         this.draw();
+
+        switch (this.orientation) {
+
+            case Orientation.LeftToRight:
+                this.component1Port = [position[0] - (this.width / 2), position[1]];
+                this.component2Port = [position[0] + (this.width / 2), position[1]];
+                break;
+            case Orientation.TopToBottom:
+                this.component1Port = [position[0], position[1] - (this.width / 2)];
+                this.component2Port = [position[0], position[1] + (this.width / 2)];
+                break;
+            case Orientation.RightToLeft:
+                this.component1Port = [position[0] + (this.width / 2), position[1]];
+                this.component2Port = [position[0] - (this.width / 2), position[1]];
+                break;
+            case Orientation.BottomToTop:
+                this.component1Port = [position[0], position[1] + (this.width / 2)];
+                this.component2Port = [position[0], position[1] - (this.width / 2)];
+                break;
+        }
     }
 
     public draw() {
-
         console.log("draw called on", this.name);
 
         this.g.clear();
 
+
         if (this.isOpen) {
-            this.g.lineStyle(1, 0x2ECC40);
+            if (this.isMotorized) {
+                this.g.lineStyle(1, this.poweredColor);
+            } else {
+                this.g.lineStyle(1, this.openColor);
+            }
         } else {
-            this.g.lineStyle(1, 0xFF4136);
+            if (this.isMotorized) {
+                this.g.lineStyle(1, this.unpoweredColor);
+            } else {
+                this.g.lineStyle(1, this.closedColor);
+            }
         }
 
-        if (this.liquid === "water") {
-            this.g.beginFill(0x0074D9);
-        } else {
-            this.g.beginFill(0xAAAAAA);
-        }
+        this.g.beginFill(this.liquid);
 
-        this.g.drawRect(this.position[0], this.position[1], this.width, this.height);
+        this.g.moveTo(this.position[0], this.position[1]);
+        this.g.lineTo(this.position[0] - (this.width / 2), this.position[1] - (this.height / 2));
+        this.g.lineTo(this.position[0] - (this.width / 2), this.position[1] + (this.height / 2));
+        this.g.lineTo(this.position[0], this.position[1]);
+        this.g.lineTo(this.position[0] + (this.width / 2), this.position[1] + (this.height / 2));
+        this.g.lineTo(this.position[0] + (this.width / 2), this.position[1] - (this.height / 2));
+        this.g.lineTo(this.position[0], this.position[1]);
+
+        this.g.drawCircle(this.position[0], this.position[1], 7);
+        this.g.position.x = this.position[0];
+        this.g.position.y = this.position[1];
+        this.g.pivot = new PIXI.Point(this.position[0], this.position[1]);
+
+        if (this.orientation === Orientation.TopToBottom || this.orientation === Orientation.BottomToTop) {
+            this.g.rotation = 1.5708;
+        }
     }
 
+
     public connectToA(component: any) {
-        this.componentA = component;
-        return this.componentAPort;
+        this.component1 = component;
+        return this.component1Port;
     }
 
     public connectToB(component: any) {
-        this.componentB = component;
-        return this.componentBPort;
+        this.component2 = component;
+        return this.component2Port;
+    }
+
+    public fill(source: any) {
+        console.log("fill called on", this.name);
+
+        this.liquid = source.liquid;
+        this.draw();
+
+        if (this.component1 != null && this.component1.name === source.name) {
+            if (this.component1Pressure !== 1) {
+                this.component1Pressure = 1;
+                if (this.isOpen) {
+                    this.component2.fill(this);
+                }
+            }
+        } else if (this.component2 != null && this.component2.name === source.name) {
+            if (this.component2Pressure !== 1) {
+                this.component2Pressure = 1;
+                if (this.isOpen) {
+                    this.component1.fill(this);
+                }
+            }
+        }
+    }
+
+    public suck(source: any) {
+        console.log("suck called on", this.name);
+
+        if (this.component1 != null && this.component1.name === source.name) {
+            if (this.component1Pressure !== -1) {
+                this.component1Pressure = -1;
+                if (this.isOpen) {
+                    this.component2.suck(this);
+                }
+            }
+        } else if (this.component2 != null && this.component2.name === source.name) {
+            if (this.component2Pressure !== -1) {
+                this.component2Pressure = -1;
+                if (this.isOpen) {
+                    this.component1.suck(this);
+                }
+            }
+        }
+    }
+
+    public stop(source: any) {
+        console.log("stop called on", this.name);
+
+        this.liquid = Liquid.None;
+        this.draw();
+
+        if (this.component1 != null && this.component1.name === source.name) {
+            if (this.component1Pressure !== 0) {
+                this.component1Pressure = 0;
+                if (this.isOpen) {
+                    this.component2.stop(this);
+                }
+            }
+        } else if (this.component2 != null && this.component2.name === source.name) {
+            if (this.component2Pressure !== 0) {
+                this.component2Pressure = 0;
+                if (this.isOpen) {
+                    this.component1.stop(this);
+                }
+            }
+        }
+    }
+
+    public notify(source: any) {
+        console.log("notify called on", this.name);
+
+        if (this.isOpen) {
+            this.liquid = source.liquid;
+            this.draw();
+
+            if (this.component1 != null && this.component1.name === source.name) {
+                if (this.component2Pressure === -1) {
+                    this.component2.notify(this);
+                }
+            } else if (this.component2 != null && this.component2.name === source.name) {
+                if (this.component1Pressure === -1) {
+                    this.component1.notify(this);
+                }
+            }
+        }
     }
 
     public toggle() {
@@ -70,92 +205,57 @@ class Valve {
         }
     }
 
+    public open() {
+        console.log("open " + this.name + " called.");
 
+        if (!this.isOpen) {
 
-    public fill(source: any) {
-        console.log("fill called on", this.name);
+            this.isOpen = true;
+
+            if (this.component1Pressure === 1) {
+                this.component2.fill(this);
+            } else if (this.component1Pressure === -1) {
+                this.component2.suck(this);
+            }
+
+            if (this.component2Pressure === 1) {
+                this.component1.fill(this);
+            } else if (this.component2Pressure === -1) {
+                this.component1.suck(this);
+            }
+
+            this.draw();
+        }
+    }
+
+    public close() {
+        console.log("close " + this.name + " called.");
 
         if (this.isOpen) {
 
-            this.state = "filling";
-            this.liquid = source.liquid;
-            this.draw();
+            this.isOpen = false;
 
-            if (this.componentA.name === source.name) {
-                this.componentB.fill(this);
-            } else if (this.componentB.name === source.name) {
-                this.componentA.fill(this);
+            if (this.component1Pressure === -1) {
+                this.component2.stop(this);
+                this.liquid = Liquid.None;
+                this.component1.notify(this);
+            } else if (this.component1Pressure === 1) {
+                this.component2.stop(this);
+                this.component1.notify(this);
             }
 
-        }
-    }
-
-    public suck(source: any) {
-        console.log("suck called on", this.name);
-
-        if (this.isOpen) {
-
-            this.state = "sucking";
-            let result = null;
-            if (this.componentA.name === source.name) {
-                result = this.componentB.suck(this);
-                this.liquid = result.liquid;
-            } else if (this.componentB.name === source.name) {
-                result = this.componentB.suck(this);
-                this.liquid = result.liquid;
+            if (this.component2Pressure === -1) {
+                this.component1.stop(this);
+                this.liquid = Liquid.None;
+                this.component2.notify(this);
+            } else if (this.component2Pressure === 1) {
+                this.component1.stop(this);
+                this.component2.notify(this);
             }
-            console.log(this.name + " returning " + this.liquid);
+
             this.draw();
-            return result;
         }
-
-
-    }
-
-    public stopAffecting(source: any) {
-
-        console.log("stopAffecting called on", this.name);
-
-        this.state = "none";
-        this.liquid = "none";
-        this.draw();
-
-        if (this.componentA.name === source.name) {
-            this.componentB.stopAffecting(this);
-        } else if (this.componentB.name === source.name) {
-            this.componentA.stopAffecting(this);
-        }
-    }
-
-    private open() {
-        console.log("open " + this.name + " called");
-        this.isOpen = true;
-
-        if (this.componentA.state === "filling") {
-            this.fill(this.componentA);
-        } else if (this.componentB.state === "filling") {
-            this.fill(this.componentB);
-        } else if (this.componentA.state === "sucking") {
-            this.suck(this.componentA);
-        } else if (this.componentB.state === "sucking") {
-            this.suck(this.componentB);
-        }
-
-        this.draw();
-    }
-
-    private close() {
-        console.log("close " + this.name + " called");
-        this.isOpen = false;
-
-        if (this.componentA.state === "filling") {
-            this.stopAffecting(this.componentA);
-        } else if (this.componentB.state === "filling") {
-            this.stopAffecting(this.componentB);
-        }
-
-        this.draw();
     }
 }
 
-export default Valve;
+export default BallValve;
