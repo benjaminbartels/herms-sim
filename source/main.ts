@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Orientation } from "./components/enums";
 import Faucet from "./components/faucet";
-// import Pump from "./components/pump";
+import Pump from "./components/pump";
 import BallValve from "./components/valve";
 import Tube from "./components/tube";
 import CheckValve from "./components/checkvalve";
@@ -33,7 +33,9 @@ let mValve6 = new BallValve("mValve6", [600, 200], Orientation.LeftToRight, true
 let tee6 = new Tee("tee6,", [750, 200], app);
 let mValve7 = new BallValve("mValve7", [750, 250], Orientation.TopToBottom, true, app);
 let mValve8 = new BallValve("mValve8", [800, 200], Orientation.LeftToRight, true, app);
-
+let pump1 = new Pump("pump1", [200, 600], Orientation.RightToLeft, app);
+let tee7 = new Tee("tee7,", [250, 600], app);
+let valve3 = new BallValve("valve3", [250, 650], Orientation.TopToBottom, false, app);
 
 let hotLiquorTank = new HotLiquorTank("htl", [350, 450], app);
 let brewKettle = new BrewKettle("brewKettle", [850, 450], app);
@@ -58,6 +60,10 @@ let tube17 = new Tube("tube17", app);
 let tube18 = new Tube("tube18", app);
 let tube19 = new Tube("tube19", app);
 let tube20 = new Tube("tube20", app);
+let tube21 = new Tube("tube21", app);
+let tube22 = new Tube("tube22", app);
+let tube23 = new Tube("tube23", app);
+let tube24 = new Tube("tube24", app);
 
 tube1.connectToA(faucet1, faucet1.connect(tube1));
 tube1.connectToB(tee1, tee1.connectToA(tube1));
@@ -119,11 +125,24 @@ tube19.connectToB(mValve8, mValve8.connectToA(tube19));
 tube20.connectToA(mValve7, mValve7.connectToB(tube20));
 tube20.connectToB(brewKettle, brewKettle.connectToTop(tube20));
 
+tube21.connectToA(check1, check1.connectToIn(tube21));
+tube21.connectToB(pump1, pump1.connectToOut(tube21));
+
+tube22.connectToA(pump1, pump1.connectToIn(tube22));
+tube22.connectToB(tee7, tee7.connectToA(tube22));
+
+tube23.connectToA(tee7, tee7.connectToB(tube23));
+tube23.connectToB(hotLiquorTank, hotLiquorTank.connectToBottom(tube23));
+
+tube24.connectToA(tee7, tee7.connectToC(tube24));
+tube24.connectToB(valve3, valve3.connectToA(tube24));
+
 // Motorized Methods
 
 document.getElementById("fullStop").addEventListener("click", () => fullStop());
 document.getElementById("fillHlt").addEventListener("click", () => fillHlt());
 document.getElementById("fillBrewKettle").addEventListener("click", () => fillBrewKettle());
+document.getElementById("heatHlt").addEventListener("click", () => heatHlt());
 
 function fullStop() {
     mValve1.close();
@@ -134,6 +153,8 @@ function fullStop() {
     mValve6.close();
     mValve7.close();
     mValve8.close();
+    pump1.off();
+    hotLiquorTank.heatOff();
 }
 
 function fillHlt() {
@@ -145,6 +166,8 @@ function fillHlt() {
     mValve6.close();
     mValve7.close();
     mValve8.close();
+    pump1.off();
+    hotLiquorTank.heatOff();
 }
 
 function fillBrewKettle() {
@@ -156,4 +179,19 @@ function fillBrewKettle() {
     mValve6.open();
     mValve7.open();
     mValve8.close();
+    pump1.off();
+    hotLiquorTank.heatOff();
+}
+
+function heatHlt() {
+    mValve1.close();
+    mValve2.open();
+    mValve3.close();
+    mValve4.close();
+    mValve5.close();
+    mValve6.close();
+    mValve7.close();
+    mValve8.close();
+    pump1.on();
+    hotLiquorTank.heatOn();
 }

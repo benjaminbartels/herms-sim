@@ -50,7 +50,7 @@ class Faucet {
     }
 
     public notify(source: any) {
-        console.log("notify called on", this.name);
+        console.log("notify called on", this.name); // ToDo: remove
     }
 
     public toggle() {
@@ -63,7 +63,7 @@ class Faucet {
 
     private on() {
         this.isOn = true;
-        this.liquid = Liquid.Water;
+        this.liquid = Liquid.ColdWater;
         this.draw();
         this.component.fill(this);
     }

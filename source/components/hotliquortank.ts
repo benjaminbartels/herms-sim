@@ -57,6 +57,16 @@ class HotLiquorTank {
 
     public fill(source: any) {
         console.log("fill called on", this.name);
+
+
+        if (this.topComponent != null && this.topComponent.name === source.name) {
+            this.topComponentPressure = 1;
+            this.liquid = source.liquid;
+            this.draw();
+        } else if (this.bottomComponent != null && this.bottomComponent.name === source.name) {
+            console.error("Can't fill in from bottomComponent");
+        }
+
         this.topComponentPressure = 1;
         this.liquid = source.liquid;
         this.draw();
@@ -64,9 +74,15 @@ class HotLiquorTank {
 
     public suck(source: any) {
         console.log("suck called on", this.name);
-        this.topComponentPressure = -1;
-        this.draw();
-        this.topComponent.notify(this);
+
+        if (this.bottomComponent != null && this.bottomComponent.name === source.name) {
+            this.bottomComponentPressure = -1;
+            this.draw();
+            this.bottomComponent.notify(this);
+        } else if (this.topComponent != null && this.topComponent.name === source.name) {
+            console.error("Can't suck out of topComponent");
+        }
+
     }
 
     public stop(source: any) {
@@ -79,6 +95,24 @@ class HotLiquorTank {
         console.log("notify called on", this.name);
         this.liquid = source.liquid;
         this.draw();
+    }
+
+    public heatOn() {
+        console.log("heatOn called on", this.name);
+        if (this.liquid === Liquid.ColdWater) {
+            this.liquid = Liquid.HotWater;
+            this.draw();
+            this.bottomComponent.notify(this);
+        }
+    }
+
+    public heatOff() {
+        console.log("heatOff called on", this.name);
+        if (this.liquid === Liquid.HotWater) {
+            this.liquid = Liquid.ColdWater;
+            this.draw();
+            this.bottomComponent.notify(this);
+        }
     }
 
     public connectToTop(component: any) {

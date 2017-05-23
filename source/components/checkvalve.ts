@@ -91,10 +91,10 @@ class CheckValve {
         console.log("fill called on", this.name);
         if (this.inComponent != null && this.inComponent.name === source.name) {
             if (this.inComponentPressure !== 1) {
-                this.liquid = source.liquid;
-                this.draw();
                 this.inComponentPressure = 1;
+                this.liquid = source.liquid;
                 this.outComponent.fill(this);
+                this.draw();
             }
         } else if (this.outComponent != null && this.outComponent.name === source.name) {
             console.log("Can't fill into the out port of check valve", this.name);
@@ -117,39 +117,26 @@ class CheckValve {
     public stop(source: any) {
         console.log("stop called on", this.name);
 
-        this.liquid = Liquid.None;
-        this.draw();
-
         if (this.inComponent != null && this.inComponent.name === source.name) {
             if (this.inComponentPressure !== 0) {
                 this.inComponentPressure = 0;
+                this.liquid = Liquid.None;
                 this.outComponent.stop(this);
-
+                this.draw();
             }
         } else if (this.outComponent != null && this.outComponent.name === source.name) {
-            if (this.outComponentPressure !== 0) {
-                this.outComponentPressure = 0;
-                this.inComponent.stop(this);
-            }
+            console.log("Can't stop from out port of check valve", this.name);
         }
     }
 
     public notify(source: any) {
-        console.log("notify called on", this.name);
-
-        this.liquid = source.liquid;
-        this.draw();
+        console.log("notify called on", this.name, "from", source.name);
 
         if (this.inComponent != null && this.inComponent.name === source.name) {
-            if (this.outComponentPressure === -1) {
-                this.outComponent.notify(this);
-            }
-        } else if (this.outComponent != null && this.outComponent.name === source.name) {
-            if (this.inComponentPressure === -1) {
-                this.inComponent.notify(this);
-            }
+            this.liquid = source.liquid;
+            this.outComponent.notify(this);
+            this.draw();
         }
-
     }
 }
 

@@ -122,7 +122,6 @@ class Tee {
         console.log("stop called on", this.name);
 
         this.liquid = Liquid.None;
-        this.draw();
 
         switch (source.name) {
 
@@ -147,46 +146,35 @@ class Tee {
                     this.componentB.stop(this);
                 }
                 break;
-
         }
+
+        this.draw();
     }
 
     public notify(source: any) {
         console.log("notify called on", this.name);
 
         this.liquid = source.liquid;
-        this.draw();
-
 
         switch (source.name) {
 
             case this.componentA.name:
-                if (this.componentBPressure === -1) {
-                    this.componentB.notify(this);
-                }
-                if (this.componentCPressure === -1) {
-                    this.componentC.notify(this);
-                }
+                this.componentB.notify(this);
+                this.componentC.notify(this);
                 break;
             case this.componentB.name:
-                if (this.componentAPressure === -1) {
-                    this.componentA.notify(this);
-                }
-                if (this.componentCPressure === -1) {
-                    this.componentC.notify(this);
-                }
+                this.componentA.notify(this);
+                this.componentC.notify(this);
                 break;
             case this.componentC.name:
-                if (this.componentAPressure === -1) {
-                    this.componentA.notify(this);
-                }
-                if (this.componentBPressure === -1) {
-                    this.componentB.notify(this);
-                }
+                this.componentA.notify(this);
+                this.componentB.notify(this);
+
                 break;
 
         }
 
+        this.draw();
     }
 }
 

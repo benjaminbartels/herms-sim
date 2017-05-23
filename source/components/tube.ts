@@ -52,19 +52,23 @@ class Tube {
         console.log("fill called on", this.name);
 
         this.liquid = source.liquid;
-        this.draw();
 
         if (this.component1.name === source.name) {
             if (this.component1Pressure !== 1) {
                 this.component1Pressure = 1;
-                this.component2.fill(this);
+                if (this.component2.fill != null) {
+                    this.component2.fill(this);
+                }
             }
         } else if (this.component2.name === source.name) {
             if (this.component2Pressure !== 1) {
                 this.component2Pressure = 1;
-                this.component1.fill(this);
+                if (this.component1.fill != null) {
+                    this.component1.fill(this);
+                }
             }
         }
+        this.draw();
     }
 
     public suck(source: any) {
@@ -87,39 +91,36 @@ class Tube {
         console.log("stop called on", this.name);
 
         this.liquid = Liquid.None;
-        this.draw();
 
         if (this.component1.name === source.name) {
             if (this.component1Pressure !== 0) {
                 this.component1Pressure = 0;
-                this.component2.stop(this);
+                if (this.component2.stop != null) {
+                    this.component2.stop(this);
+                }
             }
         } else if (this.component2.name === source.name) {
             if (this.component2Pressure !== 0) {
                 this.component2Pressure = 0;
-                this.component1.stop(this);
+                if (this.component1.stop != null) {
+                    this.component1.stop(this);
+                }
             }
         }
+        this.draw();
     }
 
     public notify(source: any) {
         console.log("notify called on", this.name);
+
         this.liquid = source.liquid;
-        this.draw();
 
         if (this.component1.name === source.name) {
-            if (this.component2Pressure === -1) {
-                this.component2.notify(this);
-            } else if (this.component1Pressure === 1) {
-                this.component2.notify(this);
-            }
+            this.component2.notify(this);
         } else if (this.component2.name === source.name) {
-            if (this.component1Pressure === -1) {
-                this.component1.notify(this);
-            } else if (this.component2Pressure === 1) {
-                this.component1.notify(this);
-            }
+            this.component1.notify(this);
         }
+        this.draw();
     }
 }
 

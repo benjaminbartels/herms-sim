@@ -13,8 +13,8 @@ class Pump {
     public isOn: boolean;
     private g: PIXI.Graphics;
     private readonly size = 20;
-    private readonly onColor = 0x2ECC40;    // Green
-    private readonly offColor = 0x85144b;   // Maroon
+    private readonly unpoweredColor = 0x001F3F; // Navy
+    private readonly poweredColor = 0xFFDC00;   // Yellow
 
     constructor(name: string, position: [number, number], orientation: Orientation, app: PIXI.Application) {
         this.name = name;
@@ -23,9 +23,6 @@ class Pump {
         this.isOn = false;
         this.liquid = Liquid.None;
         this.g = new PIXI.Graphics;
-        this.g.interactive = true;
-        this.g.buttonMode = true;
-        this.g.on("pointerdown", () => { this.toggle(); });
         app.stage.addChild(this.g);
         this.draw();
 
@@ -53,9 +50,9 @@ class Pump {
     public draw() {
         this.g.clear();
         if (this.isOn) {
-            this.g.lineStyle(1, this.onColor);
+            this.g.lineStyle(1, this.poweredColor);
         } else {
-            this.g.lineStyle(1, this.offColor);
+            this.g.lineStyle(1, this.unpoweredColor);
         }
         this.g.beginFill(this.liquid);
         this.g.drawCircle(this.position[0], this.position[1], this.size);
@@ -99,27 +96,24 @@ class Pump {
         this.draw();
     }
 
-    public toggle() {
-        if (this.isOn) {
-            this.off();
-        } else {
-            this.on();
+    public on() {
+
+        if (!this.isOn) {
+            this.isOn = true;
+            this.inComponent.suck(this);
+            this.outComponent.fill(this);
+            this.draw();
         }
     }
 
-    private on() {
-        this.isOn = true;
-        this.inComponent.suck(this);
-        this.outComponent.fill(this);
-        this.draw();
-    }
-
-    private off() {
-        this.isOn = false;
-        this.liquid = Liquid.None;
-        this.inComponent.stop(this);
-        this.outComponent.stop(this);
-        this.draw();
+    public off() {
+        if (this.isOn) {
+            this.isOn = false;
+            this.liquid = Liquid.None;
+            this.inComponent.stop(this);
+            this.outComponent.stop(this);
+            this.draw();
+        }
     }
 
 }

@@ -1,7 +1,8 @@
 
 export enum Liquid {
     None = 0xAAAAAA,        // Gray
-    Water = 0x7FDBFF,       // Aqua
+    ColdWater = 0x7FDBFF,   // Aqua
+    HotWater = 0xFF4136,    // Red
     Wert = 0xFF851B,        // Orange
     Sanitizer = 0xB10DC9,   // Purple
     Cleaner = 0x01FF70,     /// Lime

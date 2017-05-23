@@ -115,13 +115,11 @@ class BallValve {
     public fill(source: any) {
         console.log("fill called on", this.name);
 
-        this.liquid = source.liquid;
-        this.draw();
-
         if (this.component1 != null && this.component1.name === source.name) {
             if (this.component1Pressure !== 1) {
                 this.component1Pressure = 1;
                 if (this.isOpen) {
+                    this.liquid = source.liquid;
                     this.component2.fill(this);
                 }
             }
@@ -129,10 +127,12 @@ class BallValve {
             if (this.component2Pressure !== 1) {
                 this.component2Pressure = 1;
                 if (this.isOpen) {
+                    this.liquid = source.liquid;
                     this.component1.fill(this);
                 }
             }
         }
+        this.draw();
     }
 
     public suck(source: any) {
@@ -158,24 +158,28 @@ class BallValve {
     public stop(source: any) {
         console.log("stop called on", this.name);
 
-        this.liquid = Liquid.None;
-        this.draw();
-
         if (this.component1 != null && this.component1.name === source.name) {
             if (this.component1Pressure !== 0) {
                 this.component1Pressure = 0;
-                if (this.isOpen) {
-                    this.component2.stop(this);
+                if (this.component2Pressure === 0) {
+                    this.liquid = Liquid.None;
+                    if (this.component2 != null && this.component2.stop != null) {
+                        this.component2.stop(this);
+                    }
                 }
             }
         } else if (this.component2 != null && this.component2.name === source.name) {
             if (this.component2Pressure !== 0) {
                 this.component2Pressure = 0;
-                if (this.isOpen) {
-                    this.component1.stop(this);
+                if (this.component1Pressure === 0) {
+                    this.liquid = Liquid.None;
+                    if (this.component1 != null && this.component1.stop != null) {
+                        this.component1.stop(this);
+                    }
                 }
             }
         }
+        this.draw();
     }
 
     public notify(source: any) {
@@ -183,18 +187,13 @@ class BallValve {
 
         if (this.isOpen) {
             this.liquid = source.liquid;
-            this.draw();
-
             if (this.component1 != null && this.component1.name === source.name) {
-                if (this.component2Pressure === -1) {
-                    this.component2.notify(this);
-                }
+                this.component2.notify(this);
             } else if (this.component2 != null && this.component2.name === source.name) {
-                if (this.component1Pressure === -1) {
-                    this.component1.notify(this);
-                }
+                this.component1.notify(this);
             }
         }
+        this.draw();
     }
 
     public toggle() {
@@ -213,12 +212,14 @@ class BallValve {
             this.isOpen = true;
 
             if (this.component1Pressure === 1) {
+                this.liquid = this.component1.liquid;
                 this.component2.fill(this);
             } else if (this.component1Pressure === -1) {
                 this.component2.suck(this);
             }
 
             if (this.component2Pressure === 1) {
+                this.liquid = this.component2.liquid;
                 this.component1.fill(this);
             } else if (this.component2Pressure === -1) {
                 this.component1.suck(this);
@@ -234,23 +235,20 @@ class BallValve {
         if (this.isOpen) {
 
             this.isOpen = false;
+            this.liquid = Liquid.None;
 
             if (this.component1Pressure === -1) {
                 this.component2.stop(this);
-                this.liquid = Liquid.None;
                 this.component1.notify(this);
             } else if (this.component1Pressure === 1) {
                 this.component2.stop(this);
-                this.component1.notify(this);
             }
 
             if (this.component2Pressure === -1) {
                 this.component1.stop(this);
-                this.liquid = Liquid.None;
                 this.component2.notify(this);
             } else if (this.component2Pressure === 1) {
                 this.component1.stop(this);
-                this.component2.notify(this);
             }
 
             this.draw();
