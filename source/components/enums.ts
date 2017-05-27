@@ -17,17 +17,14 @@ export enum Orientation {
 
 export enum State {
     None = 0,
-    ToA,
-    ToB,
-
-    // FilledByA,
-    // SuckedByA,
-    // FilledByB,
-    // SuckedByB,
-    // FilledByC,
-    // SuckedByC,
-    // FilledByTop,
-    // SuckedByBottom,
-    // FilledByIn,
-    // SuckedByOut,
+    FilledByA,
+    SuckedByA,
+    FilledByB,
+    SuckedByB,
+    FilledByC,
+    SuckedByC,
+    FilledByTop,
+    SuckedByBottom,
+    FilledByIn,
+    SuckedByOut,
 }
