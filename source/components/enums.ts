@@ -14,3 +14,20 @@ export enum Orientation {
     RightToLeft,
     BottomToTop,
 }
+
+export enum State {
+    None = 0,
+    ToA,
+    ToB,
+
+    // FilledByA,
+    // SuckedByA,
+    // FilledByB,
+    // SuckedByB,
+    // FilledByC,
+    // SuckedByC,
+    // FilledByTop,
+    // SuckedByBottom,
+    // FilledByIn,
+    // SuckedByOut,
+}

@@ -12,6 +12,7 @@ class Pump {
     public outPort: [number, number];
     public isOn: boolean;
     private g: PIXI.Graphics;
+    private t: PIXI.Text;
     private readonly size = 20;
     private readonly unpoweredColor = 0x001F3F; // Navy
     private readonly poweredColor = 0xFFDC00;   // Yellow
@@ -24,8 +25,13 @@ class Pump {
         this.liquid = Liquid.None;
         this.g = new PIXI.Graphics;
         app.stage.addChild(this.g);
+        this.t = new PIXI.Text(name);
+        this.t.style.fontSize = 10;
+        this.t.anchor.set(0.5, 0.5);
+        this.t.x = this.position[0];
+        this.t.y = this.position[1];
+        app.stage.addChild(this.t);
         this.draw();
-
         switch (this.orientation) {
 
             case Orientation.LeftToRight:
@@ -45,9 +51,13 @@ class Pump {
                 this.outPort = [position[0], position[1] - 20];
                 break;
         }
+        this.t.x = this.position[0];
+        this.t.y = this.position[1];
     }
 
     public draw() {
+        console.log(this.name + " draw");
+
         this.g.clear();
         if (this.isOn) {
             this.g.lineStyle(1, this.poweredColor);
@@ -70,7 +80,6 @@ class Pump {
         } else if (this.orientation === Orientation.BottomToTop) {
             this.g.rotation = 4.7124;
         }
-
     }
 
     public connectToIn(component: any) {
@@ -83,35 +92,38 @@ class Pump {
         return this.outPort;
     }
 
-    public notify(source: any) {
-        console.log("notify called on", this.name);
-        this.liquid = source.liquid;
-        if (this.isOn) {
-            if (source.name === this.inComponent.name) {
-                this.outComponent.notify(this);
-            } else if (source.name === this.outComponent.name) {
-                this.inComponent.notify(this);
+    public updateLiquid(source: string, liquid: Liquid) {
+        console.log(this.name + " updateLiquid - source: " + source + " liquid: " + Liquid[liquid]);
+
+
+        if (source === this.inComponent.name) {
+            if (this.isOn) {
+                this.liquid = liquid;
+                this.outComponent.fill(this.name, this.liquid);
             }
+        } else if (source === this.outComponent.name) {
+            console.log(this.name + " updateLiquid - Can't update Liquid from the out port of a pump.");
         }
+
         this.draw();
     }
 
     public on() {
-
+        console.log(this.name + " on");
         if (!this.isOn) {
             this.isOn = true;
-            this.inComponent.suck(this);
-            this.outComponent.fill(this);
+            this.inComponent.suck(this.name);
             this.draw();
         }
     }
 
     public off() {
+        console.log(this.name + " off");
         if (this.isOn) {
             this.isOn = false;
             this.liquid = Liquid.None;
-            this.inComponent.stop(this);
-            this.outComponent.stop(this);
+            this.inComponent.stop(this.name);
+            this.outComponent.stop(this.name);
             this.draw();
         }
     }

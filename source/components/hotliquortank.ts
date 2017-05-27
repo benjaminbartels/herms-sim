@@ -8,16 +8,13 @@ class HotLiquorTank {
     public bottomComponent: any;
     public coilTopComponent: any;
     public coilBottomComponent: any;
-    public topComponentPressure: number;
-    public bottomComponentPressure: number;
-    public coilTopComponentPressure: number;
-    public coilBottomComponentPressure: number;
     public topComponentPort: [number, number];
     public bottomComponentPort: [number, number];
     public coilTopComponentPort: [number, number];
     public coilBottomComponentPort: [number, number];
     public liquid: Liquid;
     private g: PIXI.Graphics;
+    private t: PIXI.Text;
     private readonly lineColor = 0x111111;
     private readonly width = 150;
     private readonly height = 200;
@@ -30,21 +27,23 @@ class HotLiquorTank {
         this.name = name;
         this.position = position;
         this.liquid = Liquid.None;
-        this.topComponentPressure = 0;
         this.topComponentPort = [this.position[0] - (this.width / 2), this.position[1] - (this.height / 2) + this.topOffset];
-        this.bottomComponentPressure = 0;
         this.bottomComponentPort = [position[0], position[1] + (this.height / 2)];
-        this.coilTopComponentPressure = 0;
         this.coilTopComponentPort = [position[0] + (this.width / 2), position[1] - (this.height / 2) + this.coilTopOffset];
-        this.coilBottomComponentPressure = 0;
         this.coilBottomComponentPort = [position[0] + (this.width / 2), position[1] + (this.height / 2) - this.coilBottomOffset];
         this.g = new PIXI.Graphics;
         app.stage.addChild(this.g);
+        this.t = new PIXI.Text(name);
+        this.t.style.fontSize = 10;
+        this.t.anchor.set(0.5, 0.5);
+        this.t.x = this.position[0];
+        this.t.y = this.position[1];
+        app.stage.addChild(this.t);
         this.draw();
     }
 
     public draw() {
-        console.log("draw called on", this.name);
+        console.log(this.name + " draw");
         this.g.clear();
         this.g.beginFill(this.liquid);
         this.g.lineStyle(1, this.lineColor);
@@ -55,63 +54,51 @@ class HotLiquorTank {
         this.g.drawCircle(this.position[0], this.position[1], this.coilSize);
     }
 
-    public fill(source: any) {
-        console.log("fill called on", this.name);
+    public fill(source: string, liquid: Liquid) {
+        console.log(this.name + " fill - source: " + source + " liquid: " + Liquid[liquid]);
 
-
-        if (this.topComponent != null && this.topComponent.name === source.name) {
-            this.topComponentPressure = 1;
-            this.liquid = source.liquid;
+        if (source === this.topComponent.name) {
+            this.liquid = liquid;
+            this.bottomComponent.fill(this.name, this.liquid);
             this.draw();
-        } else if (this.bottomComponent != null && this.bottomComponent.name === source.name) {
-            console.error("Can't fill in from bottomComponent");
+        } else if (source === this.bottomComponent.name) {
+            console.log(this.name + " suck - Can't fill from the bottom port of brewkettle.");
         }
-
-        this.topComponentPressure = 1;
-        this.liquid = source.liquid;
-        this.draw();
     }
 
-    public suck(source: any) {
-        console.log("suck called on", this.name);
+    public suck(source: string) {
+        console.log(this.name + " suck - source: " + source);
 
-        if (this.bottomComponent != null && this.bottomComponent.name === source.name) {
-            this.bottomComponentPressure = -1;
+        if (source === this.topComponent.name) {
+            console.log(this.name + " suck - Can't suck out of the top port of brewkettle.");
+        } else if (source === this.bottomComponent.name) {
+            this.bottomComponent.updateLiquid(this.name, this.liquid);
             this.draw();
-            this.bottomComponent.notify(this);
-        } else if (this.topComponent != null && this.topComponent.name === source.name) {
-            console.error("Can't suck out of topComponent");
         }
-
     }
 
-    public stop(source: any) {
-        console.log("stop called on", this.name);
-        this.topComponentPressure = 0;
-        this.draw();
+    public stop(source: string) {
+        console.log(this.name + " stop - source: " + source);
     }
 
-    public notify(source: any) {
-        console.log("notify called on", this.name);
-        this.liquid = source.liquid;
-        this.draw();
+    public updateLiquid(source: string, liquid: Liquid) {
+        console.log(this.name + " updateLiquid - source: " + source + " liquid: " + Liquid[liquid]);
     }
 
     public heatOn() {
-        console.log("heatOn called on", this.name);
+        console.log(this.name + " heatOn");
         if (this.liquid === Liquid.ColdWater) {
             this.liquid = Liquid.HotWater;
             this.draw();
-            this.bottomComponent.notify(this);
+            this.bottomComponent.updateLiquid(this.name, this.liquid);
         }
     }
 
     public heatOff() {
-        console.log("heatOff called on", this.name);
+        console.log(this.name + " heatOff");
         if (this.liquid === Liquid.HotWater) {
-            this.liquid = Liquid.ColdWater;
             this.draw();
-            this.bottomComponent.notify(this);
+            this.bottomComponent.updateLiquid(this.name, this.liquid);
         }
     }
 

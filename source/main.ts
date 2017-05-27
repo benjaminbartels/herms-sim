@@ -13,57 +13,67 @@ let app = new PIXI.Application(1000, 1000, { antialias: true });
 app.renderer.backgroundColor = 0xFFFFFF;
 document.body.appendChild(app.view);
 
-// Fill HLT with water
-let faucet1 = new Faucet("faucet1", [100, 100], app);
-let tee1 = new Tee("tee1,", [150, 100], app);
-let valve1 = new BallValve("valve1", [200, 100], Orientation.LeftToRight, false, app);
-let valve2 = new BallValve("valve2", [150, 150], Orientation.TopToBottom, false, app);
-let tee2 = new Tee("tee2,", [150, 200], app);
-let mValve1 = new BallValve("mValve1", [200, 200], Orientation.LeftToRight, true, app);
-let tee3 = new Tee("tee3,", [150, 300], app);
-let mValve2 = new BallValve("mValve2", [200, 300], Orientation.LeftToRight, true, app);
-let check1 = new CheckValve("check1", [150, 350], Orientation.BottomToTop, app);
-let check2 = new CheckValve("check2", [400, 200], Orientation.LeftToRight, app);
-let tee4 = new Tee("tee4,", [450, 200], app);
-let mValve3 = new BallValve("mValve3", [450, 250], Orientation.TopToBottom, true, app);
-let mValve4 = new BallValve("mValve4", [500, 200], Orientation.LeftToRight, true, app);
-let tee5 = new Tee("tee5,", [550, 200], app);
-let mValve5 = new BallValve("mValve5", [550, 250], Orientation.TopToBottom, true, app);
-let mValve6 = new BallValve("mValve6", [600, 200], Orientation.LeftToRight, true, app);
-let tee6 = new Tee("tee6,", [750, 200], app);
-let mValve7 = new BallValve("mValve7", [750, 250], Orientation.TopToBottom, true, app);
-let mValve8 = new BallValve("mValve8", [800, 200], Orientation.LeftToRight, true, app);
-let pump1 = new Pump("pump1", [200, 600], Orientation.RightToLeft, app);
-let tee7 = new Tee("tee7,", [250, 600], app);
-let valve3 = new BallValve("valve3", [250, 650], Orientation.TopToBottom, false, app);
 
-let hotLiquorTank = new HotLiquorTank("htl", [350, 450], app);
-let brewKettle = new BrewKettle("brewKettle", [850, 450], app);
+let faucet1 = new Faucet("f1", [100, 100], app);
+let tee1 = new Tee("T1", [150, 100], app);
+let valve1 = new BallValve("v1", [200, 100], Orientation.LeftToRight, false, app);
+let valve2 = new BallValve("v2", [150, 150], Orientation.TopToBottom, false, app);
+let tee2 = new Tee("T2", [150, 200], app);
+let mValve1 = new BallValve("m1", [200, 200], Orientation.LeftToRight, true, app);
+let tee3 = new Tee("T3", [150, 300], app);
+let mValve2 = new BallValve("m2", [200, 300], Orientation.LeftToRight, true, app);
+let check1 = new CheckValve("c1", [150, 350], Orientation.BottomToTop, app);
+let check2 = new CheckValve("c2", [400, 200], Orientation.LeftToRight, app);
+let tee4 = new Tee("T4", [450, 200], app);
+let mValve3 = new BallValve("m3", [450, 250], Orientation.TopToBottom, true, app);
+let mValve4 = new BallValve("m4", [500, 200], Orientation.LeftToRight, true, app);
+let tee5 = new Tee("T5", [550, 200], app);
+let mValve5 = new BallValve("m5", [550, 250], Orientation.TopToBottom, true, app);
+let mValve6 = new BallValve("m6", [600, 200], Orientation.LeftToRight, true, app);
+let tee6 = new Tee("T6", [750, 200], app);
+let mValve7 = new BallValve("m7", [750, 250], Orientation.TopToBottom, true, app);
+let mValve8 = new BallValve("m8", [800, 200], Orientation.LeftToRight, true, app);
+let pump1 = new Pump("p1", [200, 600], Orientation.RightToLeft, app);
+let tee7 = new Tee("T7", [250, 600], app);
+let valve3 = new BallValve("v3", [250, 650], Orientation.TopToBottom, false, app);
 
-let tube1 = new Tube("tube1", app);
-let tube2 = new Tube("tube2", app);
-let tube3 = new Tube("tube3", app);
-let tube4 = new Tube("tube4", app);
-let tube5 = new Tube("tube5", app);
-let tube6 = new Tube("tube6", app);
-let tube7 = new Tube("tube7", app);
-let tube8 = new Tube("tube8", app);
-let tube9 = new Tube("tube9", app);
-let tube10 = new Tube("tube10", app);
-let tube11 = new Tube("tube11", app);
-let tube12 = new Tube("tube12", app);
-let tube13 = new Tube("tube13", app);
-let tube14 = new Tube("tube14", app);
-let tube15 = new Tube("tube15", app);
-let tube16 = new Tube("tube16", app);
-let tube17 = new Tube("tube17", app);
-let tube18 = new Tube("tube18", app);
-let tube19 = new Tube("tube19", app);
-let tube20 = new Tube("tube20", app);
-let tube21 = new Tube("tube21", app);
-let tube22 = new Tube("tube22", app);
-let tube23 = new Tube("tube23", app);
-let tube24 = new Tube("tube24", app);
+let hotLiquorTank = new HotLiquorTank("HLT", [350, 450], app);
+let hltValve = new BallValve("hltv", [hotLiquorTank.bottomComponentPort[0], hotLiquorTank.bottomComponentPort[1]],
+    Orientation.TopToBottom, false, app);
+hotLiquorTank.connectToBottom(hltValve);
+hltValve.connectToA(hotLiquorTank);
+
+
+let brewKettle = new BrewKettle("BK", [850, 450], app);
+let bkValve = new BallValve("bkv", [brewKettle.bottomComponentPort[0], brewKettle.bottomComponentPort[1]],
+    Orientation.TopToBottom, false, app);
+brewKettle.connectToBottom(bkValve);
+bkValve.connectToA(brewKettle);
+
+let tube1 = new Tube("t1", app);
+let tube2 = new Tube("t2", app);
+let tube3 = new Tube("t3", app);
+let tube4 = new Tube("t4", app);
+let tube5 = new Tube("t5", app);
+let tube6 = new Tube("t6", app);
+let tube7 = new Tube("t7", app);
+let tube8 = new Tube("t8", app);
+let tube9 = new Tube("t9", app);
+let tube10 = new Tube("t10", app);
+let tube11 = new Tube("t11", app);
+let tube12 = new Tube("t12", app);
+let tube13 = new Tube("t13", app);
+let tube14 = new Tube("t14", app);
+let tube15 = new Tube("t15", app);
+let tube16 = new Tube("t16", app);
+let tube17 = new Tube("t17", app);
+let tube18 = new Tube("t18", app);
+let tube19 = new Tube("t19", app);
+let tube20 = new Tube("t20", app);
+let tube21 = new Tube("t21", app);
+let tube22 = new Tube("t22", app);
+let tube23 = new Tube("t23", app);
+let tube24 = new Tube("t24", app);
 
 tube1.connectToA(faucet1, faucet1.connect(tube1));
 tube1.connectToB(tee1, tee1.connectToA(tube1));
@@ -123,7 +133,7 @@ tube19.connectToA(tee6, tee6.connectToC(tube19));
 tube19.connectToB(mValve8, mValve8.connectToA(tube19));
 
 tube20.connectToA(mValve7, mValve7.connectToB(tube20));
-tube20.connectToB(brewKettle, brewKettle.connectToTop(tube20));
+tube20.connectToB(bkValve, brewKettle.connectToTop(tube20));
 
 tube21.connectToA(check1, check1.connectToIn(tube21));
 tube21.connectToB(pump1, pump1.connectToOut(tube21));
@@ -132,7 +142,7 @@ tube22.connectToA(pump1, pump1.connectToIn(tube22));
 tube22.connectToB(tee7, tee7.connectToA(tube22));
 
 tube23.connectToA(tee7, tee7.connectToB(tube23));
-tube23.connectToB(hotLiquorTank, hotLiquorTank.connectToBottom(tube23));
+tube23.connectToB(hltValve, hltValve.connectToB(tube23));
 
 tube24.connectToA(tee7, tee7.connectToC(tube24));
 tube24.connectToB(valve3, valve3.connectToA(tube24));
