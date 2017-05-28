@@ -1,9 +1,10 @@
 import * as PIXI from "pixi.js";
-import { Liquid } from "./enums";
+import { Liquid, State } from "./enums";
 
 class HotLiquorTank {
     public name: string;
     public position: [number, number];
+    public coilState: State;
     public topComponent: any;
     public bottomComponent: any;
     public coilTopComponent: any;
@@ -26,6 +27,7 @@ class HotLiquorTank {
     constructor(name: string, position: [number, number], app: PIXI.Application) {
         this.name = name;
         this.position = position;
+        this.coilState = State.None;
         this.liquid = Liquid.None;
         this.topComponentPort = [this.position[0] - (this.width / 2), this.position[1] - (this.height / 2) + this.topOffset];
         this.bottomComponentPort = [position[0], position[1] + (this.height / 2)];
@@ -58,11 +60,71 @@ class HotLiquorTank {
         console.log(this.name + " fill - source: " + source + " liquid: " + Liquid[liquid]);
 
         if (source === this.topComponent.name) {
-            this.liquid = liquid;
-            this.bottomComponent.fill(this.name, this.liquid);
-            this.draw();
+            if (liquid !== Liquid.None) {
+                this.liquid = liquid;
+                this.bottomComponent.fill(this.name, this.liquid);
+                this.draw();
+            }
         } else if (source === this.bottomComponent.name) {
-            console.log(this.name + " suck - Can't fill from the bottom port of brewkettle.");
+            console.log(this.name + " suck - Can't fill from the bottom port of HotLiquorTank.");
+        } else if (source === this.coilTopComponent.name) {
+            switch (this.coilState) {
+                case State.None:
+                    console.log(this.name + " fill - State is None. Set liquid to " + Liquid[liquid] + " and fill Coil Bottom.");
+                    this.coilState = State.FilledByA;
+                    this.liquid = liquid;
+                    this.coilBottomComponent.fill(this.name, this.liquid);
+                    break;
+                case State.FilledByA:
+                    console.log(this.name + " fill - State is FilledByA. Set liquid to " + Liquid[liquid] + " and fill Coil Bottom.");
+                    this.coilState = State.FilledByA;
+                    this.liquid = liquid;
+                    this.coilBottomComponent.fill(this.name, this.liquid);
+                    break;
+                case State.SuckedByA:
+                    console.log(this.name + " fill - State is SuckedByA. Set liquid to None and fill Coil Bottom.");
+                    this.coilState = State.FilledByA;
+                    this.liquid = liquid;
+                    this.coilBottomComponent.fill(this.name, this.liquid);
+                    break;
+                case State.FilledByB:
+                    console.error(this.name + " fill - State is FilledByB. Invalid State Change.");
+                    break;
+                case State.SuckedByB:
+                    console.error(this.name + " fill - State is SuckedByB. Invalid State Change.");
+                    break;
+                default:
+                    console.error(this.name + " fill - Invalid State.");
+            }
+        } else if (this.coilBottomComponent.name === source) {
+            switch (this.coilState) {
+                case State.None:
+                    console.log(this.name + " fill - State is None. Set liquid to " + Liquid[liquid] + " and fill Coil Top.");
+                    this.coilState = State.FilledByB;
+                    this.liquid = liquid;
+                    this.coilTopComponent.fill(this.name, this.liquid);
+                    break;
+                case State.FilledByA:
+                    console.error(this.name + " fill - State is FilledByA. Invalid State Change.");
+                    break;
+                case State.SuckedByA:
+                    console.error(this.name + " fill - State is SuckedByA. Invalid State Change.");
+                    break;
+                case State.FilledByB:
+                    console.log(this.name + " fill - State is FilledByB. Set liquid to " + Liquid[liquid] + " and fill Coil Top.");
+                    this.coilState = State.FilledByB;
+                    this.liquid = liquid;
+                    this.coilTopComponent.fill(this.name, this.liquid);
+                    break;
+                case State.SuckedByB:
+                    console.log(this.name + " fill - State is SuckedByB. Set liquid to None and fill Coil Top.");
+                    this.coilState = State.FilledByB;
+                    this.liquid = liquid;
+                    this.coilTopComponent.fill(this.name, this.liquid);
+                    break;
+                default:
+                    console.error(this.name + " fill - Invalid State.");
+            }
         }
     }
 
@@ -70,19 +132,93 @@ class HotLiquorTank {
         console.log(this.name + " suck - source: " + source);
 
         if (source === this.topComponent.name) {
-            console.log(this.name + " suck - Can't suck out of the top port of brewkettle.");
+            console.log(this.name + " suck - Can't suck out of the top port of HotLiquorTank.");
         } else if (source === this.bottomComponent.name) {
             this.bottomComponent.updateLiquid(this.name, this.liquid);
             this.draw();
+        } else if (this.coilTopComponent.name === source) {
+            switch (this.coilState) {
+                case State.None:
+                    console.log(this.name + " suck - State is None. Suck Coil Bottom.");
+                    this.coilState = State.SuckedByA;
+                    this.coilBottomComponent.suck(this.name);
+                    break;
+                case State.FilledByA:
+                    console.log(this.name + " suck - State is FilledByA. Suck Coil Bottom.");
+                    this.coilState = State.SuckedByA;
+                    this.coilBottomComponent.suck(this.name);
+                    break;
+                case State.SuckedByA:
+                    console.log(this.name + " suck - State is SuckedByA. Do nothing.");
+                    break;
+                case State.FilledByB:
+                    console.error(this.name + " suck - State is FilledByB. Invalid State Change.");
+                    break;
+                case State.SuckedByB:
+                    console.error(this.name + " suck - State is SuckedByB. Invalid State Change.");
+                    break;
+                default:
+                    console.error(this.name + " suck - Invalid State.");
+            }
+        } else if (this.coilBottomComponent.name === source) {
+            switch (this.coilState) {
+                case State.None:
+                    console.log(this.name + " suck - State is None. Suck A Coil Top.");
+                    this.coilState = State.SuckedByB;
+                    this.coilTopComponent.suck(this.name);
+                    break;
+                case State.FilledByA:
+                    console.error(this.name + " suck - State is FilledByA. Invalid State Change.");
+                    break;
+                case State.SuckedByA:
+                    console.error(this.name + " suck - State is SuckedByA. Invalid State Change.");
+                    break;
+                case State.FilledByB:
+                    console.log(this.name + " suck - State is FilledByB. Suck Coil Top");
+                    this.coilState = State.SuckedByB;
+                    this.coilTopComponent.suck(this.name);
+                    break;
+                case State.SuckedByB:
+                    console.log(this.name + " suck - State is SuckedByB. Do nothing.");
+                    break;
+                default:
+                    console.error(this.name + " suck - Invalid State.");
+            }
         }
     }
 
     public stop(source: string) {
         console.log(this.name + " stop - source: " + source);
+
+        if (this.coilTopComponent.name === source) {
+            if (this.coilState === State.None) {
+                console.log(this.name + " stop - State is None. Do nothing.");
+            } else {
+                console.log(this.name + " stop - State is not None. Set liquid to None and stop Coil Bottom.");
+                this.coilState = State.None;
+                this.liquid = Liquid.None;
+                this.coilBottomComponent.stop(this.name);
+            }
+        } else if (this.coilBottomComponent.name === source) {
+            if (this.coilState === State.None) {
+                console.log(this.name + " stop - State is None. Do nothing.");
+            } else {
+                console.log(this.name + " stop - State is not None. Set liquid to None and stop Coil Top.");
+                this.coilState = State.None;
+                this.liquid = Liquid.None;
+                this.coilTopComponent.stop(this.name);
+            }
+        }
     }
 
     public updateLiquid(source: string, liquid: Liquid) {
         console.log(this.name + " updateLiquid - source: " + source + " liquid: " + Liquid[liquid]);
+
+        if (source === this.coilTopComponent.name) {
+            this.coilBottomComponent.updateLiquid(this.name, this.liquid);
+        } else if (source === this.coilBottomComponent.name) {
+            this.coilTopComponent.updateLiquid(this.name, this.liquid);
+        }
     }
 
     public heatOn() {

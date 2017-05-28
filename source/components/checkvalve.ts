@@ -1,11 +1,10 @@
 import * as PIXI from "pixi.js";
-import { Liquid, State, Orientation } from "./enums";
+import { Liquid, Orientation } from "./enums";
 
 class CheckValve {
     public name: string;
     public position: [number, number];
     public orientation: Orientation;
-    public state: State;
     public liquid: Liquid;
     public inComponent: any;
     public outComponent: any;
@@ -20,7 +19,6 @@ class CheckValve {
         this.name = name;
         this.position = position;
         this.orientation = orientation;
-        this.state = State.None;
         this.liquid = Liquid.None;
         this.inComponentPort = [position[0] + 0, position[1] + 10];
         this.outComponentPort = [position[0] + 40, position[1] + 10];
@@ -92,7 +90,6 @@ class CheckValve {
         console.log(this.name + " fill - source: " + source + " liquid: " + Liquid[liquid]);
 
         if (source === this.inComponent.name) {
-            this.state = State.FilledByIn;
             this.liquid = liquid;
             this.outComponent.fill(this.name, this.liquid);
             this.draw();
@@ -107,7 +104,6 @@ class CheckValve {
         if (source === this.inComponent.name) {
             console.log(this.name + " suck - Can't suck out of the in port of check valve.");
         } else if (source === this.outComponent.name) {
-            this.state = State.SuckedByOut;
             this.inComponent.suck(this.name);
 
         }
@@ -117,12 +113,9 @@ class CheckValve {
         console.log(this.name + " stop - source: " + source);
 
         if (source === this.inComponent.name) {
-            if (this.state !== State.None) {
-                this.state = 0;
-                this.liquid = Liquid.None;
-                this.outComponent.stop(this.name);
-                this.draw();
-            }
+            this.liquid = Liquid.None;
+            this.outComponent.stop(this.name);
+            this.draw();
         } else if (source === this.outComponent.name) {
             console.log(this.name + " stop - Can't stop from out port of check valve");
         }

@@ -135,10 +135,14 @@ class Tube {
                     this.componentB.suck(this.name);
                     break;
                 case State.SuckedByA:
-                    console.log(this.name + " suck - State is SuckedByA. Do nothing.");
+                    console.log(this.name + " suck - State is SuckedByA. Suck B.");
+                    this.state = State.SuckedByA;
+                    this.componentB.suck(this.name);
                     break;
                 case State.FilledByB:
-                    console.error(this.name + " suck - State is FilledByB. Invalid State Change.");
+                    console.log(this.name + " suck - State is FilledByB. Suck B.");
+                    this.state = State.SuckedByA;
+                    this.componentB.suck(this.name);
                     break;
                 case State.SuckedByB:
                     console.error(this.name + " suck - State is SuckedByB. Invalid State Change.");
@@ -154,7 +158,9 @@ class Tube {
                     this.componentA.suck(this.name);
                     break;
                 case State.FilledByA:
-                    console.error(this.name + " suck - State is FilledByA. Invalid State Change.");
+                    console.error(this.name + " suck - State is FilledByA. Suck A.");
+                    this.state = State.SuckedByB;
+                    this.componentA.suck(this.name);
                     break;
                 case State.SuckedByA:
                     console.error(this.name + " suck - State is SuckedByA. Invalid State Change.");
@@ -165,7 +171,9 @@ class Tube {
                     this.componentA.suck(this.name);
                     break;
                 case State.SuckedByB:
-                    console.log(this.name + " suck - State is SuckedByB. Do nothing.");
+                    console.log(this.name + " suck - State is SuckedByB. Suck A.");
+                    this.state = State.SuckedByB;
+                    this.componentA.suck(this.name);
                     break;
                 default:
                     console.error(this.name + " suck - Invalid State.");

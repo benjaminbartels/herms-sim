@@ -23,8 +23,6 @@ export enum State {
     SuckedByB,
     FilledByC,
     SuckedByC,
-    FilledByTop,
-    SuckedByBottom,
-    FilledByIn,
-    SuckedByOut,
+    FilledByD,
+    SuckedByD,
 }

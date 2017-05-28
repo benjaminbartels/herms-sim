@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Liquid } from "./enums";
 
-class BrewKettle {
+class MashTun {
     public name: string;
     public position: [number, number];
     public liquid: Liquid;
@@ -15,15 +15,11 @@ class BrewKettle {
     private readonly width = 150;
     private readonly height = 200;
     private readonly topOffset = 10;
-    private isFilling: boolean;
-    private isDraining: boolean;
 
     constructor(name: string, position: [number, number], app: PIXI.Application) {
         this.name = name;
         this.position = position;
         this.liquid = Liquid.None;
-        this.isFilling = false;
-        this.isDraining = false;
         this.topComponentPort = [this.position[0] - (this.width / 2), this.position[1] - (this.height / 2) + this.topOffset];
         this.bottomComponentPort = [position[0], position[1] + (this.height / 2)];
         this.g = new PIXI.Graphics;
@@ -60,8 +56,7 @@ class BrewKettle {
 
         if (source === this.topComponent.name) {
             if (liquid !== Liquid.None) {
-                this.liquid = liquid;
-                this.isFilling = true;
+                this.liquid = Liquid.Wert;
                 this.bottomComponent.fill(this.name, this.liquid);
                 this.draw();
             }
@@ -76,29 +71,13 @@ class BrewKettle {
         if (source === this.topComponent.name) {
             console.log(this.name + " suck - Can't suck out of the top port of BrewKettle.");
         } else if (source === this.bottomComponent.name) {
-            this.isDraining = true;
             this.bottomComponent.updateLiquid(this.name, this.liquid);
-            if (!this.isFilling) {
-                this.liquid = Liquid.None;
-            }
             this.draw();
         }
     }
 
     public stop(source: string) {
         console.log(this.name + " stop - source: " + source);
-
-        if (source === this.topComponent.name) {
-            this.isFilling = false;
-            if (this.isDraining) {
-                this.liquid = Liquid.None;
-            }
-        }
-
-        if (source === this.bottomComponent.name) {
-            this.isDraining = false;
-        }
-        this.draw();
     }
 
     public updateLiquid(source: string, liquid: Liquid) {
@@ -123,4 +102,4 @@ class BrewKettle {
     }
 }
 
-export default BrewKettle;
+export default MashTun;

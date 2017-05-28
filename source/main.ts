@@ -6,10 +6,14 @@ import BallValve from "./components/valve";
 import Tube from "./components/tube";
 import CheckValve from "./components/checkvalve";
 import Tee from "./components/tee";
+import Cross from "./components/cross";
+import CounterFlowChiller from "./components/counterflowchiller";
 import HotLiquorTank from "./components/hotliquortank";
+import MashTun from "./components/mashtun";
 import BrewKettle from "./components/brewkettle";
 
-let app = new PIXI.Application(1000, 1000, { antialias: true });
+
+let app = new PIXI.Application(1200, 1200, { antialias: true });
 app.renderer.backgroundColor = 0xFFFFFF;
 document.body.appendChild(app.view);
 
@@ -37,11 +41,35 @@ let pump1 = new Pump("p1", [200, 600], Orientation.RightToLeft, app);
 let tee7 = new Tee("T7", [250, 600], app);
 let valve3 = new BallValve("v3", [250, 650], Orientation.TopToBottom, false, app);
 
+let mValve10 = new BallValve("m10", [800, 600], Orientation.LeftToRight, true, app);
+let tee8 = new Tee("T8", [750, 600], app);
+let mValve9 = new BallValve("m9", [700, 600], Orientation.LeftToRight, true, app);
+let pump2 = new Pump("p2", [750, 650], Orientation.TopToBottom, app);
+let check3 = new CheckValve("c3,", [750, 700], Orientation.TopToBottom, app);
+let cross1 = new Cross("C1", [750, 750], app);
+let mValve11 = new BallValve("m11", [700, 750], Orientation.LeftToRight, true, app);
+let mValve12 = new BallValve("m12", [800, 750], Orientation.LeftToRight, true, app);
+let valve4 = new BallValve("v4", [750, 800], Orientation.TopToBottom, false, app);
+let tee9 = new Tee("T9", [950, 750], app);
+let valve5 = new BallValve("v5", [1000, 750], Orientation.LeftToRight, false, app);
+let check4 = new CheckValve("c4,", [1050, 700], Orientation.TopToBottom, app);
+let tee10 = new Tee("T10", [1050, 750], app);
+
 let hotLiquorTank = new HotLiquorTank("HLT", [350, 450], app);
 let hltValve = new BallValve("hltv", [hotLiquorTank.bottomComponentPort[0], hotLiquorTank.bottomComponentPort[1]],
     Orientation.TopToBottom, false, app);
 hotLiquorTank.connectToBottom(hltValve);
 hltValve.connectToA(hotLiquorTank);
+let hltCoilValve = new BallValve("hltcv", [hotLiquorTank.coilBottomComponentPort[0], hotLiquorTank.coilBottomComponentPort[1]],
+    Orientation.LeftToRight, false, app);
+hotLiquorTank.connectToCoilBottom(hltCoilValve);
+hltCoilValve.connectToA(hotLiquorTank);
+
+let mashTun = new MashTun("MT", [600, 450], app);
+let mtValve = new BallValve("mtv", [mashTun.bottomComponentPort[0], mashTun.bottomComponentPort[1]],
+    Orientation.TopToBottom, false, app);
+mashTun.connectToBottom(mtValve);
+mtValve.connectToA(mashTun);
 
 
 let brewKettle = new BrewKettle("BK", [850, 450], app);
@@ -49,6 +77,8 @@ let bkValve = new BallValve("bkv", [brewKettle.bottomComponentPort[0], brewKettl
     Orientation.TopToBottom, false, app);
 brewKettle.connectToBottom(bkValve);
 bkValve.connectToA(brewKettle);
+
+let counterFlowChiller = new CounterFlowChiller("cfc", [1000, 200], app);
 
 let tube1 = new Tube("t1", app);
 let tube2 = new Tube("t2", app);
@@ -74,6 +104,28 @@ let tube21 = new Tube("t21", app);
 let tube22 = new Tube("t22", app);
 let tube23 = new Tube("t23", app);
 let tube24 = new Tube("t24", app);
+let tube25 = new Tube("t25", app);
+let tube26 = new Tube("t26", app);
+let tube27 = new Tube("t27", app);
+let tube28 = new Tube("t28", app);
+let tube29 = new Tube("t29", app);
+let tube30 = new Tube("t30", app);
+let tube31 = new Tube("t31", app);
+let tube32 = new Tube("t32", app);
+let tube33 = new Tube("t33", app);
+let tube34 = new Tube("t34", app);
+let tube35 = new Tube("t35", app);
+let tube36 = new Tube("t36", app);
+let tube37 = new Tube("t37", app);
+let tube38 = new Tube("t38", app);
+let tube39 = new Tube("t39", app);
+let tube40 = new Tube("t40", app);
+let tube41 = new Tube("t41", app);
+let tube42 = new Tube("t42", app);
+let tube43 = new Tube("t43", app);
+let tube44 = new Tube("t44", app);
+let tube45 = new Tube("t45", app);
+
 
 tube1.connectToA(faucet1, faucet1.connect(tube1));
 tube1.connectToB(tee1, tee1.connectToA(tube1));
@@ -133,7 +185,7 @@ tube19.connectToA(tee6, tee6.connectToC(tube19));
 tube19.connectToB(mValve8, mValve8.connectToA(tube19));
 
 tube20.connectToA(mValve7, mValve7.connectToB(tube20));
-tube20.connectToB(bkValve, brewKettle.connectToTop(tube20));
+tube20.connectToB(brewKettle, brewKettle.connectToTop(tube20));
 
 tube21.connectToA(check1, check1.connectToIn(tube21));
 tube21.connectToB(pump1, pump1.connectToOut(tube21));
@@ -147,12 +199,78 @@ tube23.connectToB(hltValve, hltValve.connectToB(tube23));
 tube24.connectToA(tee7, tee7.connectToC(tube24));
 tube24.connectToB(valve3, valve3.connectToA(tube24));
 
+tube25.connectToA(bkValve, bkValve.connectToB(tube25));
+tube25.connectToB(mValve10, mValve10.connectToB(tube25));
+
+tube26.connectToA(mValve10, mValve10.connectToA(tube26));
+tube26.connectToB(tee8, tee8.connectToA(tube26));
+
+tube27.connectToA(tee8, tee8.connectToB(tube27));
+tube27.connectToB(mValve9, mValve9.connectToB(tube27));
+
+tube28.connectToA(tee8, tee8.connectToC(tube28));
+tube28.connectToB(pump2, pump2.connectToIn(tube28));
+
+tube29.connectToA(pump2, pump2.connectToOut(tube29));
+tube29.connectToB(check3, check3.connectToIn(tube29));
+
+tube30.connectToA(check3, check3.connectToOut(tube30));
+tube30.connectToB(cross1, cross1.connectToA(tube30));
+
+tube31.connectToA(cross1, cross1.connectToB(tube31));
+tube31.connectToB(mValve11, mValve11.connectToB(tube31));
+
+tube32.connectToA(cross1, cross1.connectToC(tube32));
+tube32.connectToB(mValve12, mValve12.connectToA(tube32));
+
+tube33.connectToA(cross1, cross1.connectToD(tube33));
+tube33.connectToB(valve4, valve4.connectToA(tube33));
+
+tube34.connectToA(mValve12, mValve12.connectToB(tube34));
+tube34.connectToB(tee9, tee9.connectToA(tube34));
+
+tube35.connectToA(tee9, tee9.connectToB(tube35));
+tube35.connectToB(valve5, valve5.connectToA(tube35));
+
+tube36.connectToA(tee9, tee9.connectToC(tube36));
+tube36.connectToB(counterFlowChiller, counterFlowChiller.connectToWertIn(tube36));
+
+tube37.connectToA(mValve8, mValve8.connectToB(tube37));
+tube37.connectToB(counterFlowChiller, counterFlowChiller.connectToWertOut(tube37));
+
+tube38.connectToA(valve1, valve1.connectToB(tube38));
+tube38.connectToB(counterFlowChiller, counterFlowChiller.connectToWaterIn(tube38));
+
+tube39.connectToA(valve5, valve5.connectToB(tube39));
+tube39.connectToB(tee10, tee10.connectToA(tube39));
+
+tube40.connectToA(tee10, tee10.connectToB(tube40));
+tube40.connectToB(check4, check4.connectToOut(tube40));
+
+tube41.connectToA(check4, check4.connectToIn(tube41));
+tube41.connectToB(counterFlowChiller, counterFlowChiller.connectToWaterOut(tube41));
+
+tube42.connectToA(mValve3, mValve3.connectToB(tube42));
+tube42.connectToB(mashTun, mashTun.connectToTop(tube42));
+
+tube43.connectToA(mValve5, mValve5.connectToB(tube43));
+tube43.connectToB(hotLiquorTank, hotLiquorTank.connectToCoilTop(tube43));
+
+tube44.connectToA(hltCoilValve, hltCoilValve.connectToB(tube44));
+tube44.connectToB(mValve11, mValve11.connectToA(tube44));
+
+tube45.connectToA(mtValve, mtValve.connectToB(tube45));
+tube45.connectToB(mValve9, mValve9.connectToA(tube45));
+
 // Motorized Methods
 
 document.getElementById("fullStop").addEventListener("click", () => fullStop());
 document.getElementById("fillHlt").addEventListener("click", () => fillHlt());
-document.getElementById("fillBrewKettle").addEventListener("click", () => fillBrewKettle());
+document.getElementById("fillBk").addEventListener("click", () => fillBk());
 document.getElementById("heatHlt").addEventListener("click", () => heatHlt());
+document.getElementById("heatBk").addEventListener("click", () => heatBk());
+document.getElementById("strikeOrMashIn").addEventListener("click", () => strikeOrMashIn());
+document.getElementById("mash").addEventListener("click", () => mash());
 
 function fullStop() {
     mValve1.close();
@@ -163,24 +281,22 @@ function fullStop() {
     mValve6.close();
     mValve7.close();
     mValve8.close();
+    mValve9.close();
+    mValve10.close();
+    mValve11.close();
+    mValve12.close();
     pump1.off();
+    pump2.off();
     hotLiquorTank.heatOff();
+    brewKettle.heatOff();
 }
 
 function fillHlt() {
     mValve1.close();
     mValve2.open();
-    mValve3.close();
-    mValve4.close();
-    mValve5.close();
-    mValve6.close();
-    mValve7.close();
-    mValve8.close();
-    pump1.off();
-    hotLiquorTank.heatOff();
 }
 
-function fillBrewKettle() {
+function fillBk() {
     mValve1.open();
     mValve2.close();
     mValve3.close();
@@ -189,19 +305,58 @@ function fillBrewKettle() {
     mValve6.open();
     mValve7.open();
     mValve8.close();
-    pump1.off();
-    hotLiquorTank.heatOff();
 }
 
 function heatHlt() {
     mValve1.close();
     mValve2.open();
-    mValve3.close();
-    mValve4.close();
-    mValve5.close();
-    mValve6.close();
-    mValve7.close();
-    mValve8.close();
     pump1.on();
     hotLiquorTank.heatOn();
+}
+
+function heatBk() {
+    mValve6.close();
+    mValve7.open();
+    mValve8.open();
+    mValve9.close();
+    mValve10.open();
+    mValve11.close();
+    mValve12.open();
+    pump2.on();
+    brewKettle.heatOn();
+}
+
+function strikeOrMashIn() {
+    mValve1.close();
+    mValve2.open();
+    mValve3.open();
+    mValve4.open();
+    mValve6.open();
+    mValve7.close();
+    mValve8.open();
+    mValve9.close();
+    mValve10.open();
+    mValve11.close();
+    mValve12.open();
+    pump1.on();
+    pump2.on();
+    hotLiquorTank.heatOn();
+    brewKettle.heatOff();
+}
+
+function mash() {
+    mValve1.close();
+    mValve2.open();
+    mValve3.open();
+    mValve4.open();
+    mValve5.open();
+    mValve6.close();
+    mValve9.open();
+    mValve10.close();
+    mValve11.open();
+    mValve12.close();
+    pump1.on();
+    pump2.on();
+    hotLiquorTank.heatOn();
+    brewKettle.heatOff();
 }

@@ -92,6 +92,14 @@ class Pump {
         return this.outPort;
     }
 
+    public fill(source: string, liquid: Liquid) {
+        console.log(this.name + " fill - source: " + source + " liquid: " + Liquid[liquid]);
+    }
+
+    public stop(source: any) {
+        console.log(this.name + " stop - source: " + source);
+    }
+
     public updateLiquid(source: string, liquid: Liquid) {
         console.log(this.name + " updateLiquid - source: " + source + " liquid: " + Liquid[liquid]);
 

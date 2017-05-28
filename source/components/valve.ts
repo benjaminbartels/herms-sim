@@ -112,7 +112,7 @@ class BallValve {
     public fill(source: string, liquid: Liquid) {
         console.log(this.name + " fill - source: " + source + " liquid: " + Liquid[liquid]);
 
-        if (this.componentA.name === source) {
+        if (this.componentA != null && this.componentA.name === source) {
             switch (this.state) {
                 case State.None:
                     console.log(this.name + " fill - State is None. Set liquid to " + Liquid[liquid] + " and fill B.");
@@ -142,12 +142,12 @@ class BallValve {
                     console.error(this.name + " fill - State is FilledByB. Invalid State Change.");
                     break;
                 case State.SuckedByB:
-                    console.error(this.name + " fill - State is SuckedByB. Invalid State Change.");
+                    console.error(this.name + " fill - State is SuckedByB. Invalid State Change. But this ok?");
                     break;
                 default:
                     console.error(this.name + " fill - Invalid State.");
             }
-        } else if (this.componentB.name === source) {
+        } else if (this.componentB != null && this.componentB.name === source) {
             switch (this.state) {
                 case State.None:
                     console.log(this.name + " fill - State is None. Set liquid to " + Liquid[liquid] + " and fill A.");
@@ -191,7 +191,7 @@ class BallValve {
     public suck(source: any) {
         console.log(this.name + " suck - source: " + source);
 
-        if (this.componentA.name === source) {
+        if (this.componentA != null && this.componentA.name === source) {
             switch (this.state) {
                 case State.None:
                     console.log(this.name + " suck - State is None. Suck B.");
@@ -208,10 +208,18 @@ class BallValve {
                     }
                     break;
                 case State.SuckedByA:
-                    console.log(this.name + " suck - State is SuckedByA. Do nothing.");
+                    console.log(this.name + " suck - State is SuckedByA. Suck B.");
+                    this.state = State.SuckedByA;
+                    if (this.isOpen) {
+                        this.componentB.suck(this.name);
+                    }
                     break;
                 case State.FilledByB:
-                    console.error(this.name + " suck - State is FilledByB. Invalid State Change.");
+                    console.log(this.name + " suck - State is FilledByB. Suck B.");
+                    this.state = State.SuckedByA;
+                    if (this.isOpen) {
+                        this.componentB.suck(this.name);
+                    }
                     break;
                 case State.SuckedByB:
                     console.error(this.name + " suck - State is SuckedByB. Invalid State Change.");
@@ -219,7 +227,8 @@ class BallValve {
                 default:
                     console.error(this.name + " suck - Invalid State.");
             }
-        } else if (this.componentB.name === source) {
+
+        } else if (this.componentB != null && this.componentB.name === source) {
             switch (this.state) {
                 case State.None:
                     console.log(this.name + " suck - State is None. Suck A.");
@@ -229,9 +238,10 @@ class BallValve {
                     }
                     break;
                 case State.FilledByA:
-                    console.error(this.name + " suck - State is FilledByA. Invalid State Change. but......");
+                    console.error(this.name + " suck - State is FilledByA. Suck A.");
+                    this.state = State.SuckedByB;
                     if (this.isOpen) {
-                        this.componentA.updateLiquid(this.liquid);
+                        this.componentA.suck(this.name);
                     }
                     break;
                 case State.SuckedByA:
@@ -245,7 +255,11 @@ class BallValve {
                     }
                     break;
                 case State.SuckedByB:
-                    console.log(this.name + " suck - State is SuckedByB. Do nothing.");
+                    console.log(this.name + " suck - State is SuckedByB. Suck A.");
+                    this.state = State.SuckedByB;
+                    if (this.isOpen) {
+                        this.componentA.suck(this.name);
+                    }
                     break;
                 default:
                     console.error(this.name + " suck - Invalid State.");
@@ -258,24 +272,24 @@ class BallValve {
     public stop(source: any) {
         console.log(this.name + " stop - source: " + source);
 
-        if (this.componentA.name === source) {
+        if (this.componentA != null && this.componentA.name === source) {
             if (this.state === State.None) {
                 console.log(this.name + " stop - State is None. Do nothing.");
             } else {
                 console.log(this.name + " stop - State is not None. Set liquid to None and stop B.");
-                this.state = State.None;
                 this.liquid = Liquid.None;
+                this.state = State.None;
                 if (this.isOpen && this.componentB != null) {
                     this.componentB.stop(this.name);
                 }
             }
-        } else if (this.componentB.name === source) {
+        } else if (this.componentB != null && this.componentB.name === source) {
             if (this.state === State.None) {
                 console.log(this.name + " stop - State is None. Do nothing.");
             } else {
                 console.log(this.name + " stop - State is not None. Set liquid to None and stop A.");
-                this.state = State.None;
                 this.liquid = Liquid.None;
+                this.state = State.None;
                 if (this.isOpen && this.componentA != null) {
                     this.componentA.stop(this.name);
                 }
@@ -332,7 +346,7 @@ class BallValve {
                     this.componentA.fill(this.name, this.liquid);
                     break;
                 case State.SuckedByB:
-                    console.error(this.name + " open - State is SuckedByB. Suck A.");
+                    console.log(this.name + " open - State is SuckedByB. Suck A.");
                     this.componentA.suck(this.name);
                     break;
                 default:
@@ -365,11 +379,11 @@ class BallValve {
                     this.componentA.updateLiquid(this.name, this.liquid);
                     break;
                 case State.FilledByB:
-                    console.error(this.name + " close - State is FilledByB. Fill A.");
+                    console.log(this.name + " close - State is FilledByB. Fill A.");
                     this.componentA.stop(this.name);
                     break;
                 case State.SuckedByB:
-                    console.error(this.name + " close - State is SuckedByB. Suck A.");
+                    console.log(this.name + " close - State is SuckedByB. Suck A.");
                     this.componentA.stop(this.name);
                     this.componentB.updateLiquid(this.name, this.liquid);
                     break;
