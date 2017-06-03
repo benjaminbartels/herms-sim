@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
-import { Liquid, Orientation } from "./enums";
+import { Orientation } from "./enums";
+import { Liquid } from "./liquid";
 
 class Pump {
     public name: string;
@@ -13,6 +14,7 @@ class Pump {
     public isOn: boolean;
     private g: PIXI.Graphics;
     private t: PIXI.Text;
+    private timer: number;
     private readonly size = 20;
     private readonly unpoweredColor = 0x001F3F; // Navy
     private readonly poweredColor = 0xFFDC00;   // Yellow
@@ -22,7 +24,7 @@ class Pump {
         this.position = position;
         this.orientation = orientation;
         this.isOn = false;
-        this.liquid = Liquid.None;
+        this.liquid = null;
         this.g = new PIXI.Graphics;
         app.stage.addChild(this.g);
         this.t = new PIXI.Text(name);
@@ -64,7 +66,7 @@ class Pump {
         } else {
             this.g.lineStyle(1, this.unpoweredColor);
         }
-        this.g.beginFill(this.liquid);
+        this.g.beginFill(this.getColor());
         this.g.drawCircle(this.position[0], this.position[1], this.size);
         this.g.moveTo(this.position[0] - 10, this.position[1] - 15);
         this.g.lineTo(this.position[0] + 20, this.position[1]);
@@ -92,35 +94,11 @@ class Pump {
         return this.outPort;
     }
 
-    public fill(source: string, liquid: Liquid) {
-        console.log(this.name + " fill - source: " + source + " liquid: " + Liquid[liquid]);
-    }
-
-    public stop(source: any) {
-        console.log(this.name + " stop - source: " + source);
-    }
-
-    public updateLiquid(source: string, liquid: Liquid) {
-        console.log(this.name + " updateLiquid - source: " + source + " liquid: " + Liquid[liquid]);
-
-
-        if (source === this.inComponent.name) {
-            if (this.isOn) {
-                this.liquid = liquid;
-                this.outComponent.fill(this.name, this.liquid);
-            }
-        } else if (source === this.outComponent.name) {
-            console.log(this.name + " updateLiquid - Can't update Liquid from the out port of a pump.");
-        }
-
-        this.draw();
-    }
-
     public on() {
         console.log(this.name + " on");
         if (!this.isOn) {
             this.isOn = true;
-            this.inComponent.suck(this.name);
+            this.timer = setInterval(() => this.fire(), 100);
             this.draw();
         }
     }
@@ -129,10 +107,25 @@ class Pump {
         console.log(this.name + " off");
         if (this.isOn) {
             this.isOn = false;
-            this.liquid = Liquid.None;
-            this.inComponent.stop(this.name);
-            this.outComponent.stop(this.name);
+            this.liquid = null;
+            clearInterval(this.timer);
             this.draw();
+        }
+    }
+
+    private fire() {
+
+        this.outComponent.fill(this.name, this.liquid);
+        this.liquid = null;
+        this.liquid = this.inComponent.suck(this.name);
+        this.draw();
+    }
+
+    private getColor(): number {
+        if (this.liquid != null) {
+            return this.liquid.type;
+        } else {
+            return 0xAAAAAA;
         }
     }
 

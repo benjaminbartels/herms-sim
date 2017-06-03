@@ -1,6 +1,6 @@
 
-export enum Liquid {
-    None = 0xAAAAAA,        // Gray
+export enum LiquidType {
+    // None = 0xAAAAAA,        // Gray
     ColdWater = 0x7FDBFF,   // Aqua
     HotWater = 0xFF4136,    // Red
     Wert = 0xFF851B,        // Orange
@@ -25,4 +25,10 @@ export enum State {
     SuckedByC,
     FilledByD,
     SuckedByD,
+    FromA,
+    FromB,
+    FromC,
+    ToA,
+    ToB,
+    ToC,
 }

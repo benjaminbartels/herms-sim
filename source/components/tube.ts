@@ -1,10 +1,9 @@
 import * as PIXI from "pixi.js";
-import { Liquid, State } from "./enums";
+import { Liquid } from "./liquid";
 
 class Tube {
     public name: string;
     public position: [number, number];
-    public state: State;
     public liquid: Liquid;
     public componentA: any;
     public componentB: any;
@@ -12,11 +11,11 @@ class Tube {
     public componentBPort: [number, number];
     private g: PIXI.Graphics;
     private t: PIXI.Text;
+    private timer: number;
 
     constructor(name: string, app: PIXI.Application) {
         this.name = name;
-        this.liquid = Liquid.None;
-        this.state = State.None;
+        this.liquid = null;
         this.g = new PIXI.Graphics;
         app.stage.addChild(this.g);
         this.t = new PIXI.Text(name);
@@ -25,10 +24,10 @@ class Tube {
         app.stage.addChild(this.t);
     }
 
+
     public draw() {
-        console.log(this.name + " draw");
         this.g.clear();
-        this.g.lineStyle(3, this.liquid);
+        this.g.lineStyle(3, this.getColor());
         this.g.moveTo(this.componentAPort[0], this.componentAPort[1]);
         this.g.lineTo(this.componentBPort[0], this.componentBPort[1]);
         this.t.x = (this.componentAPort[0] + this.componentBPort[0]) / 2;
@@ -53,173 +52,77 @@ class Tube {
         }
     }
 
-    public fill(source: string, liquid: Liquid) {
-        console.log(this.name + " fill - source: " + source + " liquid: " + Liquid[liquid]);
+    public fill(source: string, liquid: Liquid): boolean {
+        console.log(this.name + " fill - source: " + source);
 
-        if (this.componentA.name === source) {
-            switch (this.state) {
-                case State.None:
-                    console.log(this.name + " fill - State is None. Set liquid to " + Liquid[liquid] + " and fill B.");
-                    this.state = State.FilledByA;
-                    this.liquid = liquid;
-                    this.componentB.fill(this.name, this.liquid);
-                    break;
-                case State.FilledByA:
-                    console.log(this.name + " fill - State is FilledByA. Set liquid to " + Liquid[liquid] + " and fill B.");
-                    this.state = State.FilledByA;
-                    this.liquid = liquid;
-                    this.componentB.fill(this.name, this.liquid);
-                    break;
-                case State.SuckedByA:
-                    console.log(this.name + " fill - State is SuckedByA. Set liquid to None and fill B.");
-                    this.state = State.FilledByA;
-                    this.liquid = liquid;
-                    this.componentB.fill(this.name, this.liquid);
-                    break;
-                case State.FilledByB:
-                    console.error(this.name + " fill - State is FilledByB. Invalid State Change.");
-                    break;
-                case State.SuckedByB:
-                    console.error(this.name + " fill - State is SuckedByB. Invalid State Change.");
-                    break;
-                default:
-                    console.error(this.name + " fill - Invalid State.");
+        let result = false;
+
+        clearTimeout(this.timer);
+
+        if (this.liquid == null && liquid != null) {
+            this.liquid = liquid;
+            result = true;
+        } else {
+            if (this.componentA != null && this.componentA.name === source) {
+                result = this.componentB.fill(this.name, this.liquid);
+            } else if (this.componentB != null && this.componentB.name === source) {
+                result = this.componentA.fill(this.name, this.liquid);
             }
-        } else if (this.componentB.name === source) {
-            switch (this.state) {
-                case State.None:
-                    console.log(this.name + " fill - State is None. Set liquid to " + Liquid[liquid] + " and fill A.");
-                    this.state = State.FilledByB;
-                    this.liquid = liquid;
-                    this.componentA.fill(this.name, this.liquid);
-                    break;
-                case State.FilledByA:
-                    console.error(this.name + " fill - State is FilledByA. Invalid State Change.");
-                    break;
-                case State.SuckedByA:
-                    console.error(this.name + " fill - State is SuckedByA. Invalid State Change.");
-                    break;
-                case State.FilledByB:
-                    console.log(this.name + " fill - State is FilledByB. Set liquid to " + Liquid[liquid] + " and fill A.");
-                    this.state = State.FilledByB;
-                    this.liquid = liquid;
-                    this.componentA.fill(this.name, this.liquid);
-                    break;
-                case State.SuckedByB:
-                    console.log(this.name + " fill - State is SuckedByB. Set liquid to None and fill A.");
-                    this.state = State.FilledByB;
-                    this.liquid = liquid;
-                    this.componentA.fill(this.name, this.liquid);
-                    break;
-                default:
-                    console.error(this.name + " fill - Invalid State.");
+            if (result) {
+                this.liquid = liquid;
             }
         }
-
+        this.timer = setInterval(() => this.drain(), 1000);
         this.draw();
+
+        console.log(this.name + " fill - result: " + result);
+
+        return result;
     }
 
-    public suck(source: any) {
+    public suck(source: any): Liquid {
         console.log(this.name + " suck - source: " + source);
 
-        if (this.componentA.name === source) {
-            switch (this.state) {
-                case State.None:
-                    console.log(this.name + " suck - State is None. Suck B.");
-                    this.state = State.SuckedByA;
-                    this.componentB.suck(this.name);
-                    break;
-                case State.FilledByA:
-                    console.log(this.name + " suck - State is FilledByA. Suck B.");
-                    this.state = State.SuckedByA;
-                    this.componentB.suck(this.name);
-                    break;
-                case State.SuckedByA:
-                    console.log(this.name + " suck - State is SuckedByA. Suck B.");
-                    this.state = State.SuckedByA;
-                    this.componentB.suck(this.name);
-                    break;
-                case State.FilledByB:
-                    console.log(this.name + " suck - State is FilledByB. Suck B.");
-                    this.state = State.SuckedByA;
-                    this.componentB.suck(this.name);
-                    break;
-                case State.SuckedByB:
-                    console.error(this.name + " suck - State is SuckedByB. Invalid State Change.");
-                    break;
-                default:
-                    console.error(this.name + " suck - Invalid State.");
-            }
-        } else if (this.componentB.name === source) {
-            switch (this.state) {
-                case State.None:
-                    console.log(this.name + " suck - State is None. Suck A.");
-                    this.state = State.SuckedByB;
-                    this.componentA.suck(this.name);
-                    break;
-                case State.FilledByA:
-                    console.error(this.name + " suck - State is FilledByA. Suck A.");
-                    this.state = State.SuckedByB;
-                    this.componentA.suck(this.name);
-                    break;
-                case State.SuckedByA:
-                    console.error(this.name + " suck - State is SuckedByA. Invalid State Change.");
-                    break;
-                case State.FilledByB:
-                    console.log(this.name + " suck - State is FilledByB. Suck A");
-                    this.state = State.SuckedByB;
-                    this.componentA.suck(this.name);
-                    break;
-                case State.SuckedByB:
-                    console.log(this.name + " suck - State is SuckedByB. Suck A.");
-                    this.state = State.SuckedByB;
-                    this.componentA.suck(this.name);
-                    break;
-                default:
-                    console.error(this.name + " suck - Invalid State.");
-            }
-        }
-        this.draw();
-
-    }
-
-    public stop(source: any) {
-        console.log(this.name + " stop - source: " + source);
+        let returnLiquid = this.liquid;
 
         if (this.componentA.name === source) {
-            if (this.state === State.None) {
-                console.log(this.name + " stop - State is None. Do nothing.");
-            } else {
-                console.log(this.name + " stop - State is not None. Set liquid to None and stop B.");
-                this.state = State.None;
-                this.liquid = Liquid.None;
-                this.componentB.stop(this.name);
-            }
+            this.liquid = this.componentB.suck(this.name);
         } else if (this.componentB.name === source) {
-            if (this.state === State.None) {
-                console.log(this.name + " stop - State is None. Do nothing.");
+            this.liquid = this.componentA.suck(this.name);
+        }
+
+        this.draw();
+        return returnLiquid;
+    }
+
+    private drain() {
+        console.log(this.name + " drain");
+
+        if (this.liquid != null) {
+            this.liquid.isPressurized = false;
+
+            let result = this.componentB.fill(this.name, this.liquid);
+
+            if (!result) {
+                result = this.componentA.fill(this.name, this.liquid);
+            }
+
+            if (result) {
+                this.liquid = null;
+                clearTimeout(this.timer);
+                this.draw();
             } else {
-                console.log(this.name + " stop - State is not None. Set liquid to None and stop A.");
-                this.state = State.None;
-                this.liquid = Liquid.None;
-                this.componentA.stop(this.name);
+                console.error(this.name + " drain - failed");
             }
         }
-        this.draw();
     }
 
-    public updateLiquid(source: string, liquid: Liquid) {
-        console.log(this.name + " updateLiquid - source: " + source + " liquid: " + Liquid[liquid]);
-
-        this.liquid = liquid;
-
-        if (source === this.componentA.name) {
-            this.componentB.updateLiquid(this.name, this.liquid);
-        } else if (source === this.componentB.name) {
-            this.componentA.updateLiquid(this.name, this.liquid);
+    private getColor(): number {
+        if (this.liquid != null) {
+            return this.liquid.type;
+        } else {
+            return 0xAAAAAA;
         }
-        this.draw();
     }
-}
 
-export default Tube;
+} export default Tube;

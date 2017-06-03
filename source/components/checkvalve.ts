@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
-import { Liquid, Orientation } from "./enums";
+import { Orientation } from "./enums";
+import { Liquid } from "./liquid";
 
 class CheckValve {
     public name: string;
@@ -14,12 +15,13 @@ class CheckValve {
     private t: PIXI.Text;
     private readonly lineColor = 0x111111;
     private readonly width = 20;
+    private timer: number;
 
     constructor(name: string, position: [number, number], orientation: Orientation, app: PIXI.Application) {
         this.name = name;
         this.position = position;
         this.orientation = orientation;
-        this.liquid = Liquid.None;
+        this.liquid = null;
         this.inComponentPort = [position[0] + 0, position[1] + 10];
         this.outComponentPort = [position[0] + 40, position[1] + 10];
         this.g = new PIXI.Graphics;
@@ -56,7 +58,7 @@ class CheckValve {
     public draw() {
         console.log(this.name + " draw");
         this.g.clear();
-        this.g.beginFill(this.liquid);
+        this.g.beginFill(this.getColor());
         this.g.lineStyle(1, this.lineColor);
         this.g.moveTo(this.position[0] - (this.width / 2), this.position[1] - (this.width / 2));
         this.g.lineTo(this.position[0] + (this.width / 2), this.position[1]);
@@ -86,53 +88,82 @@ class CheckValve {
         return this.outComponentPort;
     }
 
-    public fill(source: string, liquid: Liquid) {
-        console.log(this.name + " fill - source: " + source + " liquid: " + Liquid[liquid]);
+    public fill(source: string, liquid: Liquid): boolean {
+        //  console.log(this.name + " fill - source: " + source + " liquid: " + LiquidType[liquid.type]);
 
-        if (source === this.inComponent.name) {
-            this.liquid = liquid;
-            this.outComponent.fill(this.name, this.liquid);
-            this.draw();
-        } else if (source === this.outComponent.name) {
-            console.log(this.name + " fill - Can't fill into the out port of check valve.");
+
+        if (this.outComponent != null && source === this.outComponent.name) {
+            console.warn(this.name + " fill - Can't fill into the out port of check valve.");
+            return false;
         }
+
+        let result = false;
+
+        clearTimeout(this.timer);
+
+        if (this.liquid == null && liquid != null) {
+            this.liquid = liquid;
+            result = true;
+        } else {
+            result = false;
+            if (this.outComponent != null) {
+                result = this.outComponent.fill(this.name, this.liquid);
+            }
+
+            if (result) {
+                this.liquid = liquid;
+            }
+
+
+        }
+        this.timer = setInterval(() => this.drain(), 1000);
+        this.draw();
+        return result;
+
     }
 
-    public suck(source: string) {
+    public suck(source: string): Liquid {
         console.log(this.name + " suck - source: " + source);
 
-        if (source === this.inComponent.name) {
-            console.log(this.name + " suck - Can't suck out of the in port of check valve.");
-        } else if (source === this.outComponent.name) {
-            this.inComponent.suck(this.name);
-
-        }
-    }
-
-    public stop(source: string) {
-        console.log(this.name + " stop - source: " + source);
-
-        if (source === this.inComponent.name) {
-            this.liquid = Liquid.None;
-            this.outComponent.stop(this.name);
-            this.draw();
-        } else if (source === this.outComponent.name) {
-            console.log(this.name + " stop - Can't stop from out port of check valve");
-        }
-    }
-
-    public updateLiquid(source: string, liquid: Liquid) {
-        console.log(this.name + " updateLiquid - source: " + source + " liquid: " + Liquid[liquid]);
-
-        if (source === this.inComponent.name) {
-            this.liquid = liquid;
-            this.outComponent.updateLiquid(this.name, this.liquid);
-        } else {
-            console.log(this.name + " updateLiquid - Can't update liquid from out port of check valve");
+        if (this.inComponent != null && source === this.inComponent.name) {
+            console.warn(this.name + " suck - Can't suck out of the in port of check valve.");
+            return null;
         }
 
+        let returnLiquid = this.liquid;
+        if (this.inComponent != null) {
+            this.liquid = this.inComponent.suck(this.name);
+        }
         this.draw();
+        return returnLiquid;
     }
+
+    private drain() {
+        console.log(this.name + " drain");
+
+        if (this.liquid != null) {
+            this.liquid.isPressurized = false;
+
+            let result = this.outComponent.fill(this.name, this.liquid);
+
+            if (result) {
+                this.liquid = null;
+                clearTimeout(this.timer);
+                this.draw();
+            } else {
+                console.error(this.name + " drain - failed");
+            }
+        }
+    }
+
+    private getColor(): number {
+        if (this.liquid != null) {
+            return this.liquid.type;
+        } else {
+            return 0xAAAAAA;
+        }
+    }
+
 }
 
 export default CheckValve;
