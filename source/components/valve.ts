@@ -188,27 +188,25 @@ class BallValve {
     private drain() {
         console.log(this.name + " drain");
 
-        if (this.isOpen) {
+        // if (this.isOpen) {
 
-            if (this.liquid != null) {
-                this.liquid.isPressurized = false;
+        if (this.liquid != null) {
+            let result = this.componentB.fill(this.name, this.liquid);
 
-                let result = this.componentB.fill(this.name, this.liquid);
+            if (!result) {
+                result = this.componentA.fill(this.name, this.liquid);
+            }
 
-                if (!result) {
-                    result = this.componentA.fill(this.name, this.liquid);
-                }
+            if (result) {
 
-                if (result) {
-
-                    this.liquid = null;
-                    clearTimeout(this.timer);
-                    this.draw();
-                } else {
-                    console.error(this.name + " drain - failed");
-                }
+                this.liquid = null;
+                clearTimeout(this.timer);
+                this.draw();
+            } else {
+                console.error(this.name + " drain - failed");
             }
         }
+        // }
     }
 
     private getColor(): number {

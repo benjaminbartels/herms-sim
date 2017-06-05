@@ -94,6 +94,16 @@ class Pump {
         return this.outPort;
     }
 
+    public fill(source: string, liquid: Liquid): boolean {
+        console.log(this.name + " fill - source: " + source);
+        return false;
+    }
+
+    public suck(source: any): Liquid {
+        console.log(this.name + " suck - source: " + source);
+        return null;
+    }
+
     public on() {
         console.log(this.name + " on");
         if (!this.isOn) {

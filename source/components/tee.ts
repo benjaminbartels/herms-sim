@@ -213,8 +213,6 @@ class Tee {
         console.log(this.name + " drain");
 
         if (this.liquid != null) {
-            this.liquid.isPressurized = false;
-
             let result = this.componentC.fill(this.name, this.liquid);
 
             if (!result) {

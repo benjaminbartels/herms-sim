@@ -68,7 +68,7 @@ class Faucet {
 
     private fire() {
         let id = this.lastId + 1;
-        let liquid = new Liquid(id, LiquidType.ColdWater, true);
+        let liquid = new Liquid(id, LiquidType.ColdWater);
         let result = this.component.fill(this.name, liquid);
         if (result) {
             this.lastId = id;

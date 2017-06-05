@@ -53,6 +53,7 @@ class HotLiquorTank {
         this.c.x = this.position[0];
         this.c.y = this.position[1];
         app.stage.addChild(this.c);
+        this.timer = setInterval(() => this.drain(), 1000);
         this.draw();
     }
 
@@ -93,7 +94,9 @@ class HotLiquorTank {
                 this.liquids.push(liquid);
                 this.draw();
                 result = true;
+
             }
+
         } else if ((this.coilTopComponent != null && this.coilTopComponent.name === source) ||
             (this.coilBottomComponent != null && this.coilBottomComponent.name === source)) {
 
@@ -127,7 +130,9 @@ class HotLiquorTank {
 
         if ((this.topComponent != null && this.topComponent.name === source) ||
             (this.bottomComponent != null && this.bottomComponent.name === source)) {
+
             clearTimeout(this.timer);
+
             if (this.topComponent != null && this.topComponent.name === source) {
                 console.log(this.name + " suck - Can't suck out of the top port of HotLiquorTank.");
             } else if (this.bottomComponent != null && this.bottomComponent.name === source) {
@@ -135,6 +140,7 @@ class HotLiquorTank {
                     returnLiquid = this.liquids.pop();
                 }
             }
+
             this.timer = setInterval(() => this.drain(), 1000);
 
         } else if ((this.coilTopComponent != null && this.coilTopComponent.name === source) ||
@@ -193,23 +199,21 @@ class HotLiquorTank {
         if (this.liquids.length > 0) {
             let liquid = this.liquids.pop();
 
-            liquid.isPressurized = false;
-
             let result = this.bottomComponent.fill(this.name, liquid);
 
             if (!result) {
+                console.error(this.name + " drain - failed");
                 this.liquids.push(liquid);
             }
+
             this.draw();
         }
-
     }
 
     private drainCoil() {
-        console.log(this.name + " drain - liquid: " + Liquid[this.coilLiquid.type]);
+        console.log(this.name + " drainCoil");
 
         if (this.coilLiquid != null) {
-            this.coilLiquid.isPressurized = false;
 
             let result = this.coilBottomComponent.fill(this.name, this.coilLiquid);
 

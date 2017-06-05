@@ -1,6 +1,6 @@
 # ToDo
 
-- [ ] Tank valves aren't draining
+- [X] Tank valves aren't draining
 - [ ] Make Tee and Cross orientation aware
 - [ ] Make Faucet orientation aware
 - [ ] Make Drain orientation aware

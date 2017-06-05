@@ -75,14 +75,14 @@ class CounterFlowChiller {
         } else if ((this.waterInComponent != null && this.waterInComponent.name === source) ||
             (this.waterOutComponent != null && this.waterOutComponent.name === source)) {
 
-            if (this.wertLiquid == null && liquid != null) {
-                this.wertLiquid = liquid;
+            if (this.waterLiquid == null && liquid != null) {
+                this.waterLiquid = liquid;
                 result = true;
             } else {
                 if (this.waterInComponent != null && this.waterInComponent.name === source) {
-                    result = this.waterOutComponent.fill(this.name, this.wertLiquid);
+                    result = this.waterOutComponent.fill(this.name, this.waterLiquid);
                 } else if (this.waterOutComponent != null && this.waterOutComponent.name === source) {
-                    result = this.waterInComponent.fill(this.name, this.wertLiquid);
+                    result = this.waterInComponent.fill(this.name, this.waterLiquid);
                 }
                 if (result) {
                     this.waterLiquid = liquid;
@@ -126,111 +126,6 @@ class CounterFlowChiller {
         return result;
     }
 
-
-    // public suck(source: any) {
-    //     console.log(this.name + " suck - source: " + source);
-
-    //     if (this.wertInComponent.name === source) {
-    //         switch (this.waterState) {
-    //             case State.None:
-    //                 console.log(this.name + " suck - State is None. Suck WaterOut.");
-    //                 this.waterState = State.SuckedByA;
-    //                 this.waterOutComponent.suck(this.name);
-    //                 break;
-    //             case State.FilledByA:
-    //                 console.log(this.name + " suck - State is FilledByA. Suck WaterOut.");
-    //                 this.waterState = State.SuckedByA;
-    //                 this.waterOutComponent.suck(this.name);
-    //                 break;
-    //             case State.SuckedByA:
-    //                 console.log(this.name + " suck - State is SuckedByA. Do nothing.");
-    //                 break;
-    //             case State.FilledByB:
-    //                 console.error(this.name + " suck - State is FilledByB. Invalid State Change.");
-    //                 break;
-    //             case State.SuckedByB:
-    //                 console.error(this.name + " suck - State is SuckedByB. Invalid State Change.");
-    //                 break;
-    //             default:
-    //                 console.error(this.name + " suck - Invalid State.");
-    //         }
-    //     } else if (this.waterOutComponent.name === source) {
-    //         switch (this.waterState) {
-    //             case State.None:
-    //                 console.log(this.name + " suck - State is None. Suck on WaterIn.");
-    //                 this.waterState = State.SuckedByB;
-    //                 this.waterInComponent.suck(this.name);
-    //                 break;
-    //             case State.FilledByA:
-    //                 console.error(this.name + " suck - State is FilledByA. Invalid State Change.");
-    //                 break;
-    //             case State.SuckedByA:
-    //                 console.error(this.name + " suck - State is SuckedByA. Invalid State Change.");
-    //                 break;
-    //             case State.FilledByB:
-    //                 console.log(this.name + " suck - State is FilledByB. Suck WaterIn");
-    //                 this.waterState = State.SuckedByB;
-    //                 this.waterInComponent.suck(this.name);
-    //                 break;
-    //             case State.SuckedByB:
-    //                 console.log(this.name + " suck - State is SuckedByB. Do nothing.");
-    //                 break;
-    //             default:
-    //                 console.error(this.name + " suck - Invalid State.");
-    //         }
-    //     } else if (this.wertInComponent.name === source) {
-    //         switch (this.wertState) {
-    //             case State.None:
-    //                 console.log(this.name + " suck - State is None. Suck WaterOut.");
-    //                 this.wertState = State.SuckedByA;
-    //                 this.wertOutComponent.suck(this.name);
-    //                 break;
-    //             case State.FilledByA:
-    //                 console.log(this.name + " suck - State is FilledByA. Suck WaterOut.");
-    //                 this.wertState = State.SuckedByA;
-    //                 this.wertOutComponent.suck(this.name);
-    //                 break;
-    //             case State.SuckedByA:
-    //                 console.log(this.name + " suck - State is SuckedByA. Do nothing.");
-    //                 break;
-    //             case State.FilledByB:
-    //                 console.error(this.name + " suck - State is FilledByB. Invalid State Change.");
-    //                 break;
-    //             case State.SuckedByB:
-    //                 console.error(this.name + " suck - State is SuckedByB. Invalid State Change.");
-    //                 break;
-    //             default:
-    //                 console.error(this.name + " suck - Invalid State.");
-    //         }
-    //     } else if (this.wertOutComponent.name === source) {
-    //         switch (this.wertState) {
-    //             case State.None:
-    //                 console.log(this.name + " suck - State is None. Suck on WaterIn.");
-    //                 this.wertState = State.SuckedByB;
-    //                 this.wertInComponent.suck(this.name);
-    //                 break;
-    //             case State.FilledByA:
-    //                 console.error(this.name + " suck - State is FilledByA. Invalid State Change.");
-    //                 break;
-    //             case State.SuckedByA:
-    //                 console.error(this.name + " suck - State is SuckedByA. Invalid State Change.");
-    //                 break;
-    //             case State.FilledByB:
-    //                 console.log(this.name + " suck - State is FilledByB. Suck WaterIn");
-    //                 this.wertState = State.SuckedByB;
-    //                 this.wertInComponent.suck(this.name);
-    //                 break;
-    //             case State.SuckedByB:
-    //                 console.log(this.name + " suck - State is SuckedByB. Do nothing.");
-    //                 break;
-    //             default:
-    //                 console.error(this.name + " suck - Invalid State.");
-    //         }
-    //     }
-    //     this.draw();
-
-    // }
-
     public connectToWertIn(component: any) {
         this.wertInComponent = component;
         return this.wertInComponentPort;
@@ -268,10 +163,9 @@ class CounterFlowChiller {
     // }
 
     private drain() {
-        console.log(this.name + " drain - liquid: " + Liquid[this.wertLiquid.type]);
+        console.log(this.name + " drain");
 
         if (this.wertLiquid != null) {
-            this.wertLiquid.isPressurized = false;
 
             let result = this.wertOutComponent.fill(this.name, this.wertLiquid);
 
@@ -286,7 +180,6 @@ class CounterFlowChiller {
 
 
         if (this.waterLiquid != null) {
-            this.waterLiquid.isPressurized = false;
 
             let result = this.waterOutComponent.fill(this.name, this.waterLiquid);
 

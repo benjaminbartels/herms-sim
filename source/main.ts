@@ -273,7 +273,7 @@ tube44.connectToB(mValve11, mValve11.connectToA(tube44));
 tube45.connectToA(mtValve, mtValve.connectToB(tube45));
 tube45.connectToB(mValve9, mValve9.connectToA(tube45));
 
-tube46.connectToA(tee10, tee10.connectToB(tube46));
+tube46.connectToA(tee10, tee10.connectToC(tube46));
 tube46.connectToB(drain, drain.connect(tube46));
 
 // // Motorized Methods
@@ -285,6 +285,8 @@ document.getElementById("heatHlt").addEventListener("click", () => heatHlt());
 document.getElementById("heatBk").addEventListener("click", () => heatBk());
 document.getElementById("strikeOrMashIn").addEventListener("click", () => strikeOrMashIn());
 document.getElementById("mash").addEventListener("click", () => mash());
+document.getElementById("sparge").addEventListener("click", () => sparge());
+document.getElementById("cool").addEventListener("click", () => cool());
 
 function fullStop() {
     mValve1.close();
@@ -367,11 +369,44 @@ function mash() {
     mValve4.open();
     mValve5.open();
     mValve6.close();
+    mValve8.close();
     mValve9.open();
     mValve10.close();
     mValve11.open();
     mValve12.close();
+    hotLiquorTank.heatOn();
+    brewKettle.heatOff();
+}
 
+function sparge() {
+    pump1.on();
+    pump2.on();
+    mValve1.open();
+    mValve2.close();
+    mValve3.open();
+    mValve4.close();
+    mValve5.open();
+    mValve6.open();
+    mValve7.open();
+    mValve8.close();
+    mValve9.open();
+    mValve10.close();
+    mValve11.open();
+    mValve12.close();
+    hotLiquorTank.heatOn();
+    brewKettle.heatOff();
+}
+
+function cool() {
+    pump1.on();
+    pump2.on();
+    mValve6.close();
+    mValve7.open();
+    mValve8.open();
+    mValve9.close();
+    mValve10.open();
+    mValve11.close();
+    mValve12.open();
     hotLiquorTank.heatOn();
     brewKettle.heatOff();
 }

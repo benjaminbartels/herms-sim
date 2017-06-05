@@ -40,6 +40,7 @@ class BrewKettle {
         this.c.x = this.position[0];
         this.c.y = this.position[1];
         app.stage.addChild(this.c);
+        this.timer = setInterval(() => this.drain(), 1000);
         this.draw();
     }
 
@@ -130,8 +131,6 @@ class BrewKettle {
         if (this.liquids.length > 0) {
 
             let liquid = this.liquids.pop();
-
-            liquid.isPressurized = false;
 
             let result = this.bottomComponent.fill(this.name, liquid);
 
