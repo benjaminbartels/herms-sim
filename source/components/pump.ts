@@ -1,87 +1,62 @@
 import * as PIXI from "pixi.js";
 import { Orientation } from "./enums";
 import { Liquid } from "./liquid";
+import { Port } from "./port";
+import { Component } from "./component";
+import { Fixture } from "./fixture";
 
-class Pump {
-    public name: string;
-    public position: [number, number];
-    public orientation: Orientation;
-    public liquid: Liquid;
-    public inComponent: any;
-    public outComponent: any;
-    public inPort: [number, number];
-    public outPort: [number, number];
-    public isOn: boolean;
-    private g: PIXI.Graphics;
-    private t: PIXI.Text;
+class Pump extends Fixture {
+    private inComponent: Component;
+    private outComponent: Component;
+    private inPort: Port;
+    private outPort: Port;
+    private isOn: boolean;
     private timer: number;
-    private readonly size = 20;
     private readonly unpoweredColor = 0x001F3F; // Navy
     private readonly poweredColor = 0xFFDC00;   // Yellow
+    private readonly timerInterval = 100;
+    private readonly size = 20;
 
-    constructor(name: string, position: [number, number], orientation: Orientation, app: PIXI.Application) {
-        this.name = name;
-        this.position = position;
-        this.orientation = orientation;
-        this.isOn = false;
+    constructor(name: string, x: number, y: number, orientation: Orientation) {
+        super(name, x, y, orientation);
         this.liquid = null;
-        this.g = new PIXI.Graphics;
-        app.stage.addChild(this.g);
-        this.t = new PIXI.Text(name);
-        this.t.style.fontSize = 10;
-        this.t.anchor.set(0.5, 0.5);
-        this.t.x = this.position[0];
-        this.t.y = this.position[1];
-        app.stage.addChild(this.t);
-        this.draw();
+        this.isOn = false;
+        this.addChild(new PIXI.Graphics());
+        let t = new PIXI.Text(this.name, new PIXI.TextStyle({ fontSize: 10 }));
+        t.anchor.set(0.5, 0.5);
+        this.addChild(t);
+
         switch (this.orientation) {
 
             case Orientation.LeftToRight:
-                this.inPort = [position[0] - 20, position[1]];
-                this.outPort = [position[0] + 20, position[1]];
+                this.inPort = new Port(x - this.size, y);
+                this.outPort = new Port(x + this.size, y);
                 break;
             case Orientation.TopToBottom:
-                this.inPort = [position[0], position[1] - 20];
-                this.outPort = [position[0], position[1] + 20];
+                this.inPort = new Port(x, y - this.size);
+                this.outPort = new Port(x, y + this.size);
                 break;
             case Orientation.RightToLeft:
-                this.inPort = [position[0] + 20, position[1]];
-                this.outPort = [position[0] - 20, position[1]];
+                this.inPort = new Port(x + this.size, y);
+                this.outPort = new Port(x - this.size, y);
                 break;
             case Orientation.BottomToTop:
-                this.inPort = [position[0], position[1] + 20];
-                this.outPort = [position[0], position[1] - 20];
+                this.inPort = new Port(x, y + this.size);
+                this.outPort = new Port(x, y - this.size);
                 break;
         }
-        this.t.x = this.position[0];
-        this.t.y = this.position[1];
+
+        this.draw();
     }
 
-    public draw() {
-        console.log(this.name + " draw");
+    public fill(source: Component, liquid: Liquid): boolean {
+        console.log(this.name + " fill - source: " + source);
+        return false;
+    }
 
-        this.g.clear();
-        if (this.isOn) {
-            this.g.lineStyle(1, this.poweredColor);
-        } else {
-            this.g.lineStyle(1, this.unpoweredColor);
-        }
-        this.g.beginFill(this.getColor());
-        this.g.drawCircle(this.position[0], this.position[1], this.size);
-        this.g.moveTo(this.position[0] - 10, this.position[1] - 15);
-        this.g.lineTo(this.position[0] + 20, this.position[1]);
-        this.g.lineTo(this.position[0] - 10, this.position[1] + 15);
-        this.g.position.x = this.position[0];
-        this.g.position.y = this.position[1];
-        this.g.pivot = new PIXI.Point(this.position[0], this.position[1]);
-
-        if (this.orientation === Orientation.TopToBottom) {
-            this.g.rotation = 1.5708;
-        } else if (this.orientation === Orientation.RightToLeft) {
-            this.g.rotation = 3.1416;
-        } else if (this.orientation === Orientation.BottomToTop) {
-            this.g.rotation = 4.7124;
-        }
+    public suck(source: Component): Liquid {
+        console.log(this.name + " suck - source: " + source);
+        return null;
     }
 
     public connectToIn(component: any) {
@@ -94,48 +69,56 @@ class Pump {
         return this.outPort;
     }
 
-    public fill(source: string, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source);
-        return false;
-    }
-
-    public suck(source: any): Liquid {
-        console.log(this.name + " suck - source: " + source);
-        return null;
-    }
-
-    public on() {
+    public turnOn() {
         console.log(this.name + " on");
         if (!this.isOn) {
             this.isOn = true;
-            this.timer = setInterval(() => this.fire(), 100);
+            this.timer = setInterval(() => this.fire(), this.timerInterval);
             this.draw();
         }
     }
 
-    public off() {
+    public turnOff() {
         console.log(this.name + " off");
         if (this.isOn) {
             this.isOn = false;
-            this.liquid = null;
             clearInterval(this.timer);
             this.draw();
         }
     }
 
     private fire() {
+        let didFill = this.outComponent.fill(this, this.liquid);
 
-        this.outComponent.fill(this.name, this.liquid);
-        this.liquid = null;
-        this.liquid = this.inComponent.suck(this.name);
-        this.draw();
+        if (didFill) {
+            this.liquid = this.inComponent.suck(this);
+            this.draw();
+        }
     }
 
-    private getColor(): number {
-        if (this.liquid != null) {
-            return this.liquid.type;
+    private draw() {
+
+        let g = <PIXI.Graphics>this.getChildAt(0);
+        g.clear();
+
+        if (this.isOn) {
+            g.lineStyle(1, this.poweredColor);
         } else {
-            return 0xAAAAAA;
+            g.lineStyle(1, this.unpoweredColor);
+        }
+        g.beginFill(this.getColor());
+        g.drawCircle(0, 0, this.size);
+        g.moveTo(-10, -15);
+        g.lineTo(20, 0);
+        g.lineTo(-10, 15);
+        g.pivot = new PIXI.Point(0, 0);
+
+        if (this.orientation === Orientation.TopToBottom) {
+            g.rotation = 1.5708;
+        } else if (this.orientation === Orientation.RightToLeft) {
+            g.rotation = 3.1416;
+        } else if (this.orientation === Orientation.BottomToTop) {
+            g.rotation = 4.7124;
         }
     }
 

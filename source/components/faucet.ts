@@ -1,80 +1,90 @@
 import * as PIXI from "pixi.js";
-import { LiquidType } from "./enums";
+import { Orientation, LiquidType } from "./enums";
 import { Liquid } from "./liquid";
+import { Port } from "./port";
+import { Component } from "./component";
+import { Fixture } from "./fixture";
 
-class Faucet {
-    public name: string;
-    public position: [number, number];
-    public liquid: Liquid;
-    public component: any;
-    public port: [number, number];
-    public isOn: boolean;
-    private g: PIXI.Graphics;
-    private t: PIXI.Text;
-    private c: PIXI.Text;
+class Faucet extends Fixture {
+    private component: Component;
+    private port: Port;
+    private isOn: boolean;
     private timer: number;
-    private lastId: number;
+    private count = 0;
     private readonly size = 20;
     private readonly lineColor = 0x111111;
+    private readonly temperature = 23;
+    private readonly interval = 100;
 
-    constructor(name: string, position: [number, number], app: PIXI.Application) {
-        this.position = position;
-        this.name = name;
+    constructor(name: string, x: number, y: number, orientation: Orientation) {
+        super(name, x, y, orientation);
         this.isOn = false;
-        this.port = position;
-        this.lastId = 0;
-        this.g = new PIXI.Graphics;
-        app.stage.addChild(this.g);
-        this.t = new PIXI.Text(name);
-        this.t.style.fontSize = 10;
-        this.t.anchor.set(0.5, 0.5);
-        this.t.x = this.position[0];
-        this.t.y = this.position[1];
-        app.stage.addChild(this.t);
-        this.c = new PIXI.Text("0");
-        this.c.style.fontSize = 10;
-        this.c.anchor.set(0.5, -0.5);
-        this.c.x = this.position[0];
-        this.c.y = this.position[1];
-        app.stage.addChild(this.c);
-        this.timer = setInterval(() => this.fire(), 100);
+        this.count = 0;
+        this.addChild(new PIXI.Graphics());
+        let t = new PIXI.Text(this.name, new PIXI.TextStyle({ fontSize: 10 }));
+        t.anchor.set(0.5, 0.5);
+        this.addChild(t);
+        let c = new PIXI.Text(this.name, new PIXI.TextStyle({ fontSize: 10 }));
+        c.anchor.set(0.5, -0.5);
+        this.addChild(c);
 
+        switch (this.orientation) {
+
+            case Orientation.LeftToRight:
+                this.port = new Port(x + this.size, y);
+                break;
+            case Orientation.TopToBottom:
+                this.port = new Port(x, y + this.size);
+                break;
+            case Orientation.RightToLeft:
+                this.port = new Port(x - this.size, y);
+                break;
+            case Orientation.BottomToTop:
+                this.port = new Port(x, y - this.size);
+                break;
+        }
+
+        this.timer = setInterval(() => this.fire(), this.interval);
         this.draw();
     }
 
-    public draw() {
-        this.g.clear();
-        this.g.lineStyle(1, this.lineColor);
-        this.g.beginFill(LiquidType.ColdWater);
-        this.g.drawCircle(this.position[0], this.position[1], this.size);
-        this.c.text = this.lastId.toString();
-
-    }
-
-    public connect(component: any) {
-        this.component = component;
-        return this.port;
-    }
-
-    public fill(source: string, liquid: Liquid): boolean {
+    public fill(source: Component, liquid: Liquid): boolean {
         console.warn(this.name + " fill - Can't fill a faucet.");
         return false;
     }
 
-    public suck(source: string): Liquid {
+    public suck(source: Component): Liquid {
         console.warn(this.name + " suck - Can't suck a faucet.");
         return null;
     }
 
+    public connect(component: Component): Port {
+        this.component = component;
+        return this.port;
+    }
+
     private fire() {
-        let id = this.lastId + 1;
-        let liquid = new Liquid(id, LiquidType.ColdWater);
-        let result = this.component.fill(this.name, liquid);
+        let id = this.count + 1;
+        this.liquid = new Liquid(id, LiquidType.Water, this.temperature);
+        let result = this.component.fill(this, this.liquid);
         if (result) {
-            this.lastId = id;
+            this.count = id;
             this.draw();
         }
     }
 
+    private draw() {
+        let g = <PIXI.Graphics>this.getChildAt(0);
+        g.clear();
+        g.lineStyle(1, this.lineColor);
+        g.beginFill(this.getColor());
+        g.drawCircle(0, 0, this.size);
+        g.endFill();
+        this.children[0] = g;
+
+        let c = <PIXI.Text>this.getChildAt(2);
+        c.text = this.count.toString();
+        this.children[2] = c;
+    }
 
 } export default Faucet;

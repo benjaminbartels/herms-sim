@@ -1,104 +1,62 @@
 import * as PIXI from "pixi.js";
-import { LiquidType } from "./enums";
 import { Liquid } from "./liquid";
+import { Port } from "./port";
+import { Component } from "./component";
+import { Tank } from "./tank";
 
-class HotLiquorTank {
-    public name: string;
-    public position: [number, number];
-    // public coilState: State;
-    public topComponent: any;
-    public bottomComponent: any;
-    public coilTopComponent: any;
-    public coilBottomComponent: any;
-    public topComponentPort: [number, number];
-    public bottomComponentPort: [number, number];
-    public coilTopComponentPort: [number, number];
-    public coilBottomComponentPort: [number, number];
-    public liquids: Liquid[];
+class HotLiquorTank extends Tank {
+
+    public coilTopComponent: Component;
+    public coilBottomComponent: Component;
+    public coilTopComponentPort: Port;
+    public coilBottomComponentPort: Port;
+
     public coilLiquid: Liquid;
-    private g: PIXI.Graphics;
-    private t: PIXI.Text;
-    private c: PIXI.Text;
-    private timer: number;
+    public temperature: number;
+    private temperatureTimer: number;
     private coilTimer: number;
-    private isHeating: boolean;
-    private readonly lineColor = 0x111111;
-    private readonly width = 150;
-    private readonly height = 200;
-    private readonly topOffset = 10;
+    private isOn: boolean;
     private readonly coilSize = 40;
     private readonly coilTopOffset = 25;
     private readonly coilBottomOffset = 25;
+    private readonly drainCoilInterval = 1000;
+    private readonly temperatureInterval = 1000;
 
-    constructor(name: string, position: [number, number], app: PIXI.Application) {
-        this.name = name;
-        this.position = position;
+    constructor(name: string, x: number, y: number) {
+        super(name, x, y);
         this.coilLiquid = null;
-        this.liquids = new Array<Liquid>();
-        this.topComponentPort = [this.position[0] - (this.width / 2), this.position[1] - (this.height / 2) + this.topOffset];
-        this.bottomComponentPort = [position[0], position[1] + (this.height / 2)];
-        this.coilTopComponentPort = [position[0] + (this.width / 2), position[1] - (this.height / 2) + this.coilTopOffset];
-        this.coilBottomComponentPort = [position[0] + (this.width / 2), position[1] + (this.height / 2) - this.coilBottomOffset];
-        this.g = new PIXI.Graphics;
-        app.stage.addChild(this.g);
-        this.t = new PIXI.Text(name);
-        this.t.style.fontSize = 10;
-        this.t.anchor.set(0.5, 0.5);
-        this.t.x = this.position[0];
-        this.t.y = this.position[1];
-        app.stage.addChild(this.t);
-        this.c = new PIXI.Text(this.liquids.length.toString());
-        this.c.style.fontSize = 10;
-        this.c.anchor.set(0.5, -1.0);
-        this.c.x = this.position[0];
-        this.c.y = this.position[1];
-        app.stage.addChild(this.c);
-        this.timer = setInterval(() => this.drain(), 1000);
+        this.temperature = 71;
+        this.coilTopComponentPort = new Port(this.x + 75, this.y - 100 + this.coilTopOffset);
+        this.coilBottomComponentPort = new Port(this.x + 75, this.y + 100 - this.coilBottomOffset);
         this.draw();
     }
 
-    public draw() {
-        console.log(this.name + " draw");
-        this.g.clear();
-        this.g.beginFill(this.getColor());
-        this.g.lineStyle(1, this.lineColor);
-        this.g.drawRect(this.position[0] - (this.width / 2), this.position[1] - (this.height / 2), this.width, this.height);
-        this.g.moveTo(this.coilTopComponentPort[0], this.coilTopComponentPort[1]);
-        this.g.lineTo(this.position[0], this.position[1]);
-        this.g.lineTo(this.coilBottomComponentPort[0], this.coilBottomComponentPort[1]);
-        this.g.drawCircle(this.position[0], this.position[1], this.coilSize);
-        this.c.text = this.liquids.length.toString();
-
-    }
-
-    public fill(source: string, liquid: Liquid): boolean {
+    public fill(source: Component, liquid: Liquid): boolean {
         console.log(this.name + " fill - source: " + source);
 
         let result = false;
 
-        if ((this.topComponent != null && this.topComponent.name === source) ||
-            (this.bottomComponent != null && this.bottomComponent.name === source)) {
+        if ((this.topComponent != null && this.topComponent.name === source.name) ||
+            (this.bottomComponent != null && this.bottomComponent.name === source.name)) {
 
-            if (liquid == null) {
-                console.log(this.name + " fill - null liquid");
-                return true;
-            }
+            result = super.fill(source, liquid);
 
-            if (this.bottomComponent != null && this.bottomComponent.name === source) {
-                console.error(this.name + " fill - Can't fill from the bottom port of HotLiquorTank.");
-                result = false;
-            } else if (this.topComponent != null && this.topComponent.name === source) {
-                if (this.isHeating) {
-                    liquid.type = LiquidType.HotWater;
-                }
-                this.liquids.push(liquid);
-                this.draw();
-                result = true;
+            // if (liquid == null) {
+            //     console.log(this.name + " fill - null liquid");
+            //     return true;
+            // }
 
-            }
+            // if (this.bottomComponent != null && this.bottomComponent.name === source) {
+            //     console.error(this.name + " fill - Can't fill from the bottom port of HotLiquorTank.");
+            //     result = false;
+            // } else if (this.topComponent != null && this.topComponent.name === source) {
+            //     this.liquids.push(liquid);
+            //     result = true;
 
-        } else if ((this.coilTopComponent != null && this.coilTopComponent.name === source) ||
-            (this.coilBottomComponent != null && this.coilBottomComponent.name === source)) {
+            // }
+
+        } else if ((this.coilTopComponent != null && this.coilTopComponent.name === source.name) ||
+            (this.coilBottomComponent != null && this.coilBottomComponent.name === source.name)) {
 
             clearTimeout(this.coilTimer);
 
@@ -106,52 +64,54 @@ class HotLiquorTank {
                 this.coilLiquid = liquid;
                 result = true;
             } else {
-                if (this.coilTopComponent != null && this.coilTopComponent.name === source) {
-                    result = this.coilBottomComponent.fill(this.name, this.coilLiquid);
-                } else if (this.coilBottomComponent != null && this.coilBottomComponent.name === source) {
-                    result = this.coilTopComponent.fill(this.name, this.coilLiquid);
+                if (this.coilTopComponent != null && this.coilTopComponent.name === source.name) {
+                    result = this.coilBottomComponent.fill(this, this.coilLiquid);
+                } else if (this.coilBottomComponent != null && this.coilBottomComponent.name === source.name) {
+                    result = this.coilTopComponent.fill(this, this.coilLiquid);
                 }
                 if (result) {
                     this.coilLiquid = liquid;
                 }
             }
 
-            this.coilTimer = setInterval(() => this.drainCoil(), 1000);
+            this.coilTimer = setInterval(() => this.drainCoil(), this.drainCoilInterval);
 
         }
         this.draw();
         return result;
     }
 
-    public suck(source: string): Liquid {
+    public suck(source: Component): Liquid {
         console.log(this.name + " suck - source: " + source);
 
         let returnLiquid = null;
 
-        if ((this.topComponent != null && this.topComponent.name === source) ||
-            (this.bottomComponent != null && this.bottomComponent.name === source)) {
+        if ((this.topComponent != null && this.topComponent.name === source.name) ||
+            (this.bottomComponent != null && this.bottomComponent.name === source.name)) {
 
-            clearTimeout(this.timer);
+            returnLiquid = super.suck(source);
 
-            if (this.topComponent != null && this.topComponent.name === source) {
-                console.log(this.name + " suck - Can't suck out of the top port of HotLiquorTank.");
-            } else if (this.bottomComponent != null && this.bottomComponent.name === source) {
-                if (this.liquids.length > 0) {
-                    returnLiquid = this.liquids.pop();
-                }
-            }
+            // clearTimeout(this.timer);
 
-            this.timer = setInterval(() => this.drain(), 1000);
+            // if (this.topComponent != null && this.topComponent.name === source) {
+            //     console.warn(this.name + " suck - Can't suck out of the top port of HotLiquorTank.");
+            // } else if (this.bottomComponent != null && this.bottomComponent.name === source) {
+            //     if (this.liquids.length > 0) {
+            //         returnLiquid = this.liquids.shift();
+            //     }
+            // }
 
-        } else if ((this.coilTopComponent != null && this.coilTopComponent.name === source) ||
-            (this.coilBottomComponent != null && this.coilBottomComponent.name === source)) {
+            // this.timer = setInterval(() => this.drain(), 1000);
+
+        } else if ((this.coilTopComponent != null && this.coilTopComponent.name === source.name) ||
+            (this.coilBottomComponent != null && this.coilBottomComponent.name === source.name)) {
 
             returnLiquid = this.coilLiquid;
 
-            if (this.coilTopComponent.name === source) {
-                this.coilLiquid = this.coilBottomComponent.suck(this.name);
-            } else if (this.coilBottomComponent.name === source) {
-                this.coilLiquid = this.coilTopComponent.suck(this.name);
+            if (this.coilTopComponent.name === source.name) {
+                this.coilLiquid = this.coilBottomComponent.suck(this);
+            } else if (this.coilBottomComponent.name === source.name) {
+                this.coilLiquid = this.coilTopComponent.suck(this);
             }
         }
         this.draw();
@@ -160,27 +120,18 @@ class HotLiquorTank {
 
     public heatOn() {
         console.log(this.name + " heatOn");
-        this.isHeating = true;
-        for (let i = 0; i < this.liquids.length; i++) {
-            this.liquids[i].type = LiquidType.HotWater;
-        }
-        this.draw();
+        this.isOn = true;
+        this.temperatureTimer = setInterval(() => this.applyHeat(), this.temperatureInterval);
     }
 
     public heatOff() {
         console.log(this.name + " heatOff");
-        this.isHeating = false;
-        // ToDo: What to do here?
+        this.isOn = false;
+        clearInterval(this.temperatureTimer);
     }
 
-    public connectToTop(component: any) {
-        this.topComponent = component;
-        return this.topComponentPort;
-    }
-
-    public connectToBottom(component: any) {
-        this.bottomComponent = component;
-        return this.bottomComponentPort;
+    public setTemperature(temperature: number) {
+        this.temperature = temperature;
     }
 
     public connectToCoilTop(component: any) {
@@ -193,21 +144,30 @@ class HotLiquorTank {
         return this.coilBottomComponentPort;
     }
 
-    private drain() {
-        console.log(this.name + " drain");
+    protected draw() {
+        super.draw();
+        let g = <PIXI.Graphics>this.getChildAt(0);
+        g.beginFill(this.getColor());
+        g.lineStyle(3, 0x666666);
+        g.moveTo(75, -100 + this.coilTopOffset);
+        g.lineTo(0, 0);
+        g.lineTo(75, 100 - this.coilBottomOffset);
+        g.drawCircle(0, 0, this.coilSize);
+        g.endFill();
+        this.children[0] = g;
+    }
 
-        if (this.liquids.length > 0) {
-            let liquid = this.liquids.pop();
+    private applyHeat() {
 
-            let result = this.bottomComponent.fill(this.name, liquid);
-
-            if (!result) {
-                console.error(this.name + " drain - failed");
-                this.liquids.push(liquid);
+        for (let i = 0; i < this.liquids.length; i++) {
+            let t = this.liquids[i].temperature;
+            if (t < this.temperature) {
+                t = t + 5;
+                this.liquids[i].temperature = t;
             }
-
-            this.draw();
         }
+
+        this.draw();
     }
 
     private drainCoil() {
@@ -215,23 +175,14 @@ class HotLiquorTank {
 
         if (this.coilLiquid != null) {
 
-            let result = this.coilBottomComponent.fill(this.name, this.coilLiquid);
+            let result = this.coilBottomComponent.fill(this, this.coilLiquid);
 
             if (result) {
                 this.coilLiquid = null;
                 clearTimeout(this.coilTimer);
-                this.draw();
             } else {
                 console.error(this.name + " drain - failed");
             }
-        }
-    }
-
-    private getColor(): number {
-        if (this.liquids.length > 0) {
-            return this.liquids[0].type;
-        } else {
-            return 0xAAAAAA;
         }
     }
 }

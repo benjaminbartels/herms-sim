@@ -1,124 +1,109 @@
 import * as PIXI from "pixi.js";
 import { Liquid } from "./liquid";
+import { Port } from "./Port";
+import { Component } from "./component";
+import { Fixture } from "./fixture";
 
-class CounterFlowChiller {
-    public name: string;
-    public position: [number, number];
-    public wertInComponent: any;
-    public wertOutComponent: any;
-    public waterInComponent: any;
-    public waterOutComponent: any;
-    public wertInComponentPort: [number, number];
-    public wertOutComponentPort: [number, number];
-    public waterInComponentPort: [number, number];
-    public waterOutComponentPort: [number, number];
-    public wertLiquid: Liquid;
+class CounterFlowChiller extends Fixture {
+    public wertInComponent: Component;
+    public wertOutComponent: Component;
+    public waterInComponent: Component;
+    public waterOutComponent: Component;
+    public wertInComponentPort: Port;
+    public wertOutComponentPort: Port;
+    public waterInComponentPort: Port;
+    public waterOutComponentPort: Port;
     public waterLiquid: Liquid;
-    private g: PIXI.Graphics;
-    private t: PIXI.Text;
-    private timer: number;
-    private readonly lineColor = 0x111111;      // Green
-    private readonly height = 40;
-    private readonly width = 90;
+    private drainTimer: number;
+    private waterDrainTimer: number;
+    private readonly lineColor = 0x111111;
+    private readonly drainInterval = 1000;
+    private readonly waterDrainInterval = 1000;
 
-    constructor(name: string, position: [number, number], app: PIXI.Application) {
-        this.name = name;
-        this.position = position;
-        this.wertInComponentPort = [this.position[0] - (this.width / 2), this.position[1] + (this.height / 2)];
-        this.wertOutComponentPort = [this.position[0] - (this.width / 2), this.position[1] - (this.height / 2)];
-        this.waterInComponentPort = [this.position[0] + (this.width / 2), this.position[1] - (this.height / 2)];
-        this.waterOutComponentPort = [this.position[0] + (this.width / 2), this.position[1] + (this.height / 2)];
-        this.wertLiquid = null;
+    constructor(name: string, x: number, y: number) {
+        super(name, x, y);
+        this.wertInComponentPort = new Port(this.x - 40, this.y + 20);
+        this.wertOutComponentPort = new Port(this.x - 40, this.y - 20);
+        this.waterInComponentPort = new Port(this.x + 40, this.y - 20);
+        this.waterOutComponentPort = new Port(this.x + 40, this.y + 20);
+        this.liquid = null;
         this.waterLiquid = null;
-        this.g = new PIXI.Graphics;
-        app.stage.addChild(this.g);
-        this.t = new PIXI.Text(name);
-        this.t.style.fontSize = 10;
-        this.t.anchor.set(0.5, 0.5);
-        this.t.x = this.position[0];
-        this.t.y = this.position[1];
-        app.stage.addChild(this.t);
+        this.addChild(new PIXI.Graphics);
+        let t = new PIXI.Text(this.name, new PIXI.TextStyle({ fontSize: 10 }));
+        t.anchor.set(0.5, 0.5);
+        this.addChild(t);
         this.draw();
     }
 
-    public draw() {
-        console.log("draw called on", this.name);
-        this.g.clear();
-        this.g.beginFill(this.getWertColor());
-        this.g.lineStyle(1, this.lineColor);
-        this.g.drawRect(this.position[0] - (this.width / 2), this.position[1] - (this.height / 2), this.width, this.height);
-    }
-
-    public fill(source: string, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source);
+    public fill(source: Component, liquid: Liquid): boolean {
+        console.log(this.name + " fill - source: " + source.name);
 
         let result = false;
 
-        clearTimeout(this.timer);
-
-        if ((this.wertInComponent != null && this.wertInComponent.name === source) ||
-            (this.wertOutComponent != null && this.wertOutComponent.name === source)) {
-
-            if (this.wertLiquid == null && liquid != null) {
-                this.wertLiquid = liquid;
+        if ((this.wertInComponent != null && this.wertInComponent.name === source.name) ||
+            (this.wertOutComponent != null && this.wertOutComponent.name === source.name)) {
+            clearTimeout(this.drainTimer);
+            if (this.liquid == null && liquid != null) {
+                this.liquid = liquid;
                 result = true;
             } else {
-                if (this.wertInComponent != null && this.wertInComponent.name === source) {
-                    result = this.wertOutComponent.fill(this.name, this.wertLiquid);
-                } else if (this.wertOutComponent != null && this.wertOutComponent.name === source) {
-                    result = this.wertInComponent.fill(this.name, this.wertLiquid);
+                if (this.wertInComponent != null && this.wertInComponent.name === source.name) {
+                    result = this.wertOutComponent.fill(this, this.liquid);
+                } else if (this.wertOutComponent != null && this.wertOutComponent.name === source.name) {
+                    result = this.wertInComponent.fill(this, this.liquid);
                 }
                 if (result) {
-                    this.wertLiquid = liquid;
+                    this.liquid = liquid;
                 }
             }
-        } else if ((this.waterInComponent != null && this.waterInComponent.name === source) ||
-            (this.waterOutComponent != null && this.waterOutComponent.name === source)) {
+            this.drainTimer = setInterval(() => this.drain(), this.drainInterval); // ToDo: move drain to Fixture
+        } else if ((this.waterInComponent != null && this.waterInComponent.name === source.name) ||
 
+            (this.waterOutComponent != null && this.waterOutComponent.name === source.name)) {
+            clearTimeout(this.waterDrainTimer);
             if (this.waterLiquid == null && liquid != null) {
                 this.waterLiquid = liquid;
                 result = true;
             } else {
-                if (this.waterInComponent != null && this.waterInComponent.name === source) {
-                    result = this.waterOutComponent.fill(this.name, this.waterLiquid);
-                } else if (this.waterOutComponent != null && this.waterOutComponent.name === source) {
-                    result = this.waterInComponent.fill(this.name, this.waterLiquid);
+                if (this.waterInComponent != null && this.waterInComponent.name === source.name) {
+                    result = this.waterOutComponent.fill(this, this.waterLiquid);
+                } else if (this.waterOutComponent != null && this.waterOutComponent.name === source.name) {
+                    result = this.waterInComponent.fill(this, this.waterLiquid);
                 }
                 if (result) {
                     this.waterLiquid = liquid;
                 }
             }
+            this.waterDrainTimer = setInterval(() => this.drain(), this.waterDrainInterval);
         }
 
         this.draw();
-        this.timer = setInterval(() => this.drain(), 1000);
         return result;
     }
 
-    public suck(source: any): Liquid {
-        console.log(this.name + " suck - source: " + source);
-
+    public suck(source: Component): Liquid {
+        console.log(this.name + " suck - source: " + source.name);
 
         let result = null;
-        if ((this.wertInComponent != null && this.wertInComponent.name === source) ||
-            (this.wertOutComponent != null && this.wertOutComponent.name === source)) {
+        if ((this.wertInComponent != null && this.wertInComponent.name === source.name) ||
+            (this.wertOutComponent != null && this.wertOutComponent.name === source.name)) {
 
-            result = this.wertLiquid;
-            if (this.wertInComponent.name === source) {
-                this.wertLiquid = this.wertOutComponent.suck(this.name);
-            } else if (this.wertOutComponent.name === source) {
-                this.wertLiquid = this.wertInComponent.suck(this.name);
+            result = this.liquid;
+            if (this.wertInComponent.name === source.name) {
+                this.liquid = this.wertOutComponent.suck(this);
+            } else if (this.wertOutComponent.name === source.name) {
+                this.liquid = this.wertInComponent.suck(this);
             }
 
 
-        } else if ((this.waterInComponent != null && this.waterInComponent.name === source) ||
-            (this.waterOutComponent != null && this.waterOutComponent.name === source)) {
+        } else if ((this.waterInComponent != null && this.waterInComponent.name === source.name) ||
+            (this.waterOutComponent != null && this.waterOutComponent.name === source.name)) {
 
             result = this.waterLiquid;
-            if (this.waterInComponent.name === source) {
-                this.waterLiquid = this.waterOutComponent.suck(this.name);
-            } else if (this.waterOutComponent.name === source) {
-                this.waterLiquid = this.waterInComponent.suck(this.name);
+            if (this.waterInComponent.name === source.name) {
+                this.waterLiquid = this.waterOutComponent.suck(this);
+            } else if (this.waterOutComponent.name === source.name) {
+                this.waterLiquid = this.waterInComponent.suck(this);
             }
         }
 
@@ -146,52 +131,62 @@ class CounterFlowChiller {
         return this.waterOutComponentPort;
     }
 
-    private getWertColor(): number {
-        if (this.wertLiquid != null) {
-            return this.wertLiquid.type;
-        } else {
-            return 0xAAAAAA;
-        }
-    }
-
-    // private getWaterColor(): number {
-    //     if (this.waterLiquid != null) {
-    //         return this.waterLiquid.type;
-    //     } else {
-    //         return 0xAAAAAA;
-    //     }
-    // }
-
     private drain() {
         console.log(this.name + " drain");
 
-        if (this.wertLiquid != null) {
+        if (this.liquid != null) {
 
-            let result = this.wertOutComponent.fill(this.name, this.wertLiquid);
+            let result = this.wertOutComponent.fill(this, this.liquid);
 
             if (result) {
-                this.wertLiquid = null;
-                clearTimeout(this.timer);
+                this.liquid = null;
+                clearTimeout(this.drainTimer);
                 this.draw();
             } else {
                 console.error(this.name + " drain - failed");
             }
         }
 
-
         if (this.waterLiquid != null) {
 
-            let result = this.waterOutComponent.fill(this.name, this.waterLiquid);
+            let result = this.waterOutComponent.fill(this, this.waterLiquid);
 
             if (result) {
                 this.waterLiquid = null;
-                clearTimeout(this.timer);
+                clearTimeout(this.waterDrainTimer);
                 this.draw();
             } else {
                 console.error(this.name + " drain - failed");
             }
         }
     }
+
+    private draw() {
+        let g = <PIXI.Graphics>this.getChildAt(0);
+        g.clear();
+        g.lineStyle(1, this.lineColor);
+        g.beginFill(this.getColor());
+        g.drawRect(-45, -20, 90, 5);
+        g.drawRect(-45, -10, 90, 5);
+        g.drawRect(-45, 0, 90, 5);
+        g.drawRect(-45, 10, 90, 5);
+        g.beginFill(this.getWaterColor());
+        g.drawRect(-45, -15, 90, 5);
+        g.drawRect(-45, -5, 90, 5);
+        g.drawRect(-45, 5, 90, 5);
+        g.drawRect(-45, 15, 90, 5);
+        g.endFill();
+        this.children[0] = g;
+    }
+
+    private getWaterColor(): number {
+        if (this.waterLiquid != null) {
+            return this.waterLiquid.getColor();
+        } else {
+            return this.emptyColor;
+        }
+    }
+
 }
 
 export default CounterFlowChiller;

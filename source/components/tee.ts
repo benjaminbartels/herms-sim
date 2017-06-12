@@ -1,133 +1,119 @@
 import * as PIXI from "pixi.js";
 import { Liquid } from "./liquid";
+import { Port } from "./Port";
+import { Component } from "./component";
+import { Fixture } from "./fixture";
 
-class Tee {
-    public name: string;
-    public position: [number, number];
-    public liquid: Liquid;
-    public componentA: any;
-    public componentB: any;
-    public componentC: any;
-    public componentAPort: [number, number];
-    public componentBPort: [number, number];
-    public componentCPort: [number, number];
-    public isOpen: boolean;
-    private g: PIXI.Graphics;
-    private t: PIXI.Text;
-    private timer: number;
+class Tee extends Fixture {
+    private componentA: Component;
+    private componentB: Component;
+    private componentC: Component;
+    private componentAPort: Port;
+    private componentBPort: Port;
+    private componentCPort: Port;
     private lastFill: string;
     private lastSuck: string;
+    private drainTimer: number;
+    private readonly drainInterval = 500;
     private readonly size = 5;
 
-    constructor(name: string, position: [number, number], app: PIXI.Application) {
-        this.name = name;
-        this.position = position;
+    constructor(name: string, x: number, y: number) {
+        super(name, x, y);
+        this.componentAPort = new Port(x, y);
+        this.componentBPort = new Port(x, y);
+        this.componentCPort = new Port(x, y);
         this.liquid = null;
-        this.componentAPort = [position[0], position[1]];
-        this.componentBPort = [position[0], position[1]];
-        this.componentCPort = [position[0], position[1]];
-        this.g = new PIXI.Graphics;
-        app.stage.addChild(this.g);
-        this.t = new PIXI.Text(name);
-        this.t.style.fontSize = 10;
-        this.t.x = this.position[0];
-        this.t.y = this.position[1];
-        app.stage.addChild(this.t);
+        this.addChild(new PIXI.Graphics());
+        let t = new PIXI.Text(this.name, new PIXI.TextStyle({ fontSize: 10 }));
+        this.addChild(t);
         this.draw();
     }
 
-    public draw() {
-        console.log("draw called on", this.name);
-        this.g.clear();
-        this.g.beginFill(this.getColor());
-        this.g.drawCircle(this.position[0], this.position[1], this.size);
-    }
-
-    public connectToA(component: any) {
+    public connectToA(component: Component) {
         this.componentA = component;
         return this.componentAPort;
     }
 
-    public connectToB(component: any) {
+    public connectToB(component: Component) {
         this.componentB = component;
         return this.componentBPort;
     }
 
-    public connectToC(component: any) {
+    public connectToC(component: Component) {
         this.componentC = component;
         return this.componentCPort;
     }
 
-    public fill(source: string, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source);
+    public fill(source: Component, liquid: Liquid): boolean {
+        console.log(this.name + " fill - source: " + source.name);
 
         let result = false;
 
-        clearTimeout(this.timer);
+        clearTimeout(this.drainTimer);
 
         if (this.liquid == null && liquid != null) {
             this.liquid = liquid;
             result = true;
         } else {
 
-            if (this.componentA != null && this.componentA.name === source) {
+            if (this.componentA != null && this.componentA.name === source.name) {
 
                 // console.log(this.name + " fill - from A " + liquid.id);
 
                 if (this.lastFill === "B") {
-                    result = this.componentC.fill(this.name, this.liquid);
+                    result = this.componentC.fill(this, this.liquid);
                     this.lastFill = "C";
                 } else {
-                    result = this.componentB.fill(this.name, this.liquid);
+                    result = this.componentB.fill(this, this.liquid);
                     this.lastFill = "B";
                 }
 
                 if (!result) {
                     if (this.lastFill === "B") {
-                        result = this.componentC.fill(this.name, this.liquid);
+                        result = this.componentC.fill(this, this.liquid);
                         this.lastFill = "C";
                     } else {
-                        result = this.componentB.fill(this.name, this.liquid);
+                        result = this.componentB.fill(this, this.liquid);
                         this.lastFill = "B";
                     }
                 }
-            } else if (this.componentB != null && this.componentB.name === source) {
+            } else if (this.componentB != null && this.componentB.name === source.name) {
                 // console.log(this.name + " fill - from B " + liquid.id);
 
                 if (this.lastFill === "A") {
-                    result = this.componentC.fill(this.name, this.liquid);
+                    result = this.componentC.fill(this, this.liquid);
                     this.lastFill = "C";
                 } else {
-                    result = this.componentA.fill(this.name, this.liquid);
+                    result = this.componentA.fill(this, this.liquid);
                     this.lastFill = "A";
                 }
 
                 if (!result) {
                     if (this.lastFill === "A") {
-                        result = this.componentC.fill(this.name, this.liquid);
+                        result = this.componentC.fill(this, this.liquid);
                         this.lastFill = "C";
                     } else {
-                        result = this.componentA.fill(this.name, this.liquid);
+                        result = this.componentA.fill(this, this.liquid);
                         this.lastFill = "A";
                     }
                 }
-            } else if (this.componentC != null && this.componentC.name === source) {
+            } else if (this.componentC != null && this.componentC.name === source.name) {
                 // console.log(this.name + " fill - from C" + liquid.id);
 
                 if (this.lastFill === "A") {
-                    result = this.componentB.fill(this.name, this.liquid);
+                    result = this.componentB.fill(this, this.liquid);
                     this.lastFill = "B";
                 } else {
-                    result = this.componentA.fill(this.name, this.liquid);
+                    result = this.componentA.fill(this, this.liquid);
                     this.lastFill = "A";
                 }
 
                 if (!result) {
                     if (this.lastFill === "A") {
-                        result = this.componentB.fill(this.name, this.liquid);
+                        result = this.componentB.fill(this, this.liquid);
                         this.lastFill = "B";
                     } else {
-                        result = this.componentA.fill(this.name, this.liquid);
+                        result = this.componentA.fill(this, this.liquid);
                         this.lastFill = "A";
                     }
                 }
@@ -138,68 +124,68 @@ class Tee {
             }
         }
         this.draw();
-        this.timer = setInterval(() => this.drain(), 500);
+        this.drainTimer = setInterval(() => this.drain(), this.drainInterval);
         return result;
     }
 
     public suck(source: any): Liquid {
-        console.log(this.name + " suck - source: " + source);
+        console.log(this.name + " suck - source: " + source.name);
 
         let returnLiquid = this.liquid;
 
-        if (this.componentA.name === source) {
+        if (this.componentA.name === source.name) {
 
             if (this.lastSuck === "B") {
-                this.liquid = this.componentC.suck(this.name);
+                this.liquid = this.componentC.suck(this);
                 this.lastSuck = "C";
             } else {
-                this.liquid = this.componentB.suck(this.name);
+                this.liquid = this.componentB.suck(this);
                 this.lastSuck = "B";
             }
 
             if (!this.liquid) {
                 if (this.lastSuck === "B") {
-                    this.liquid = this.componentC.suck(this.name);
+                    this.liquid = this.componentC.suck(this);
                     this.lastSuck = "C";
                 } else {
-                    this.liquid = this.componentB.suck(this.name);
+                    this.liquid = this.componentB.suck(this);
                     this.lastSuck = "B";
                 }
             }
 
-        } else if (this.componentB.name === source) {
+        } else if (this.componentB.name === source.name) {
             if (this.lastSuck === "A") {
-                this.liquid = this.componentC.suck(this.name);
+                this.liquid = this.componentC.suck(this);
                 this.lastSuck = "C";
             } else {
-                this.liquid = this.componentA.suck(this.name);
+                this.liquid = this.componentA.suck(this);
                 this.lastSuck = "A";
             }
 
             if (!this.liquid) {
                 if (this.lastSuck === "A") {
-                    this.liquid = this.componentC.suck(this.name);
+                    this.liquid = this.componentC.suck(this);
                     this.lastSuck = "C";
                 } else {
-                    this.liquid = this.componentA.suck(this.name);
+                    this.liquid = this.componentA.suck(this);
                     this.lastSuck = "A";
                 }
             }
-        } else if (this.componentC.name === source) {
+        } else if (this.componentC.name === source.name) {
             if (this.lastSuck === "A") {
-                this.liquid = this.componentB.suck(this.name);
+                this.liquid = this.componentB.suck(this);
                 this.lastSuck = "B";
             } else {
-                this.liquid = this.componentA.suck(this.name);
+                this.liquid = this.componentA.suck(this);
                 this.lastSuck = "A";
             }
 
             if (!this.liquid) {
                 if (this.lastSuck === "A") {
-                    this.liquid = this.componentB.suck(this.name);
+                    this.liquid = this.componentB.suck(this);
                     this.lastSuck = "B";
                 } else {
-                    this.liquid = this.componentA.suck(this.name);
+                    this.liquid = this.componentA.suck(this);
                     this.lastSuck = "A";
                 }
             }
@@ -213,31 +199,31 @@ class Tee {
         console.log(this.name + " drain");
 
         if (this.liquid != null) {
-            let result = this.componentC.fill(this.name, this.liquid);
+            let result = this.componentC.fill(this, this.liquid);
 
             if (!result) {
-                result = this.componentB.fill(this.name, this.liquid);
+                result = this.componentB.fill(this, this.liquid);
             }
 
             if (!result) {
-                result = this.componentA.fill(this.name, this.liquid);
+                result = this.componentA.fill(this, this.liquid);
             }
 
             if (result) {
 
                 this.liquid = null;
-                clearTimeout(this.timer);
+                clearTimeout(this.drainTimer);
                 this.draw();
             }
         }
     }
 
-    private getColor(): number {
-        if (this.liquid != null) {
-            return this.liquid.type;
-        } else {
-            return 0xAAAAAA;
-        }
+    private draw() {
+        let g = <PIXI.Graphics>this.getChildAt(0);
+        g.beginFill(this.getColor());
+        g.drawCircle(0, 0, this.size);
+        g.endFill();
+        this.children[0] = g;
     }
 }
 
