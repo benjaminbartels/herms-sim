@@ -25,6 +25,14 @@ export abstract class Fixture extends PIXI.Container implements Component {
     public abstract fill(source: Component, liquid: Liquid): boolean;
     public abstract suck(source: Component): Liquid;
 
+    public getTemperature(): number {
+        if (this.liquid != null) {
+            return this.liquid.temperature;
+        } else {
+            return null;
+        }
+    }
+
     protected getColor(): number {
         if (this.liquid != null) {
             return this.liquid.getColor();

@@ -2,17 +2,18 @@
 import { Orientation } from "./components/enums";
 import Faucet from "./components/faucet";
 import Pump from "./components/pump";
-import BallValve from "./components/valve";
+import BallValve from "./components/ballvalve";
 import Tube from "./components/tube";
 import CheckValve from "./components/checkvalve";
 import Tee from "./components/tee";
 import Cross from "./components/cross";
 import CounterFlowChiller from "./components/counterflowchiller";
-import HotLiquorTank from "./components/hotliquortank";
-import MashTun from "./components/mashtun";
-import BrewKettle from "./components/brewkettle";
+import HeatExchangerTank from "./components/heatexchangertank";
+import Tank from "./components/tank";
+import HeatedTank from "./components/heatedtank";
 import Vessel from "./components/vessel";
 import Drain from "./components/drain";
+import Thermometer from "./components/thermometer";
 
 let app = new PIXI.Application(1200, 1200, { antialias: true });
 app.renderer.backgroundColor = 0xFFFFFF;
@@ -77,7 +78,7 @@ let tee3 = new Tee("T3", 150, 300);
 let mValve2 = new BallValve("m2", 200, 300, Orientation.LeftToRight, true);
 let check1 = new CheckValve("c1", 150, 350, Orientation.BottomToTop);
 
-let hotLiquorTank = new HotLiquorTank("HLT", 350, 450);
+let hotLiquorTank = new HeatExchangerTank("HLT", 350, 450);
 let hltValve = new BallValve("hltv", hotLiquorTank.bottomComponentPort.x, hotLiquorTank.bottomComponentPort.y,
     Orientation.TopToBottom, false);
 hotLiquorTank.connectToBottom(hltValve);
@@ -88,8 +89,11 @@ let hltCoilValve = new BallValve("hltcv", hotLiquorTank.coilBottomComponentPort.
 hotLiquorTank.connectToCoilBottom(hltCoilValve);
 hltCoilValve.connectToA(hotLiquorTank);
 
+let hltThermometer = new Thermometer("hltt", hotLiquorTank, 300, 525);
+
 let check2 = new CheckValve("c2", 400, 200, Orientation.LeftToRight);
 let tee4 = new Tee("T4", 450, 200);
+
 let mValve3 = new BallValve("m3", 450, 250, Orientation.TopToBottom, true);
 let mValve4 = new BallValve("m4", 500, 200, Orientation.LeftToRight, true);
 let tee5 = new Tee("T5", 550, 200);
@@ -102,11 +106,13 @@ let pump1 = new Pump("p1", 200, 600, Orientation.RightToLeft);
 let tee7 = new Tee("T7", 250, 600);
 let valve3 = new BallValve("v3", 250, 650, Orientation.TopToBottom, false);
 
-let brewKettle = new BrewKettle("BK", 850, 450);
+let brewKettle = new HeatedTank("BK", 850, 450);
 let bkValve = new BallValve("bkv", brewKettle.bottomComponentPort.x, brewKettle.bottomComponentPort.y,
     Orientation.TopToBottom, false);
 brewKettle.connectToBottom(bkValve);
 bkValve.connectToA(brewKettle);
+
+let bkThermometer = new Thermometer("bkt", brewKettle, 800, 525);
 
 let mValve10 = new BallValve("m10", 800, 600, Orientation.LeftToRight, true);
 let tee8 = new Tee("T8", 750, 600);
@@ -125,11 +131,13 @@ let counterFlowChiller = new CounterFlowChiller("cfc", 1000, 230);
 let check4 = new CheckValve("c4", 1050, 700, Orientation.TopToBottom);
 let tee10 = new Tee("T10", 1050, 750);
 
-let mashTun = new MashTun("MT", 600, 450);
+let mashTun = new Tank("MT", 600, 450);
 let mtValve = new BallValve("mtv", mashTun.bottomComponentPort.x, mashTun.bottomComponentPort.y,
     Orientation.TopToBottom, false);
 mashTun.connectToBottom(mtValve);
 mtValve.connectToA(mashTun);
+
+let mtThermometer = new Thermometer("mtt", tee4, 450, 175);
 
 let bucket = new Vessel("b1", 250, 750);
 let fermenter = new Vessel("ferm", 750, 900);
@@ -281,10 +289,10 @@ tube46.connectToA(tee10, tee10.connectToC(tube46));
 tube46.connectToB(drain, drain.connect(tube46));
 
 tube47.connectToA(valve3, valve3.connectToB(tube47));
-tube47.connectToB(bucket, bucket.connect(tube47));
+tube47.connectToB(bucket, bucket.connectToTop(tube47));
 
 tube48.connectToA(valve4, valve4.connectToB(tube48));
-tube48.connectToB(fermenter, fermenter.connect(tube48));
+tube48.connectToB(fermenter, fermenter.connectToTop(tube48));
 
 
 app.stage.addChild(faucet1);
@@ -394,6 +402,10 @@ app.stage.addChild(fermenter);
 
 app.stage.addChild(drain);
 
+app.stage.addChild(hltThermometer);
+app.stage.addChild(mtThermometer);
+app.stage.addChild(bkThermometer);
+
 // // Motorized Methods
 
 document.getElementById("fullStop").addEventListener("click", () => fullStop());
@@ -401,10 +413,12 @@ document.getElementById("fillHlt").addEventListener("click", () => fillHlt());
 document.getElementById("fillBk").addEventListener("click", () => fillBk());
 document.getElementById("heatHlt").addEventListener("click", () => heatHlt());
 document.getElementById("heatBk").addEventListener("click", () => heatBk());
+document.getElementById("addGrains").addEventListener("click", () => addGrains());
 document.getElementById("strikeOrMashIn").addEventListener("click", () => strikeOrMashIn());
 document.getElementById("mash").addEventListener("click", () => mash());
 document.getElementById("sparge").addEventListener("click", () => sparge());
 document.getElementById("cool").addEventListener("click", () => cool());
+
 
 function fullStop() {
     mValve1.close();
@@ -421,8 +435,8 @@ function fullStop() {
     mValve12.close();
     pump1.turnOff();
     pump2.turnOn();
-    hotLiquorTank.heatOff();
-    brewKettle.heatOff();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
 }
 
 function fillHlt() {
@@ -445,7 +459,7 @@ function heatHlt() {
     mValve1.close();
     mValve2.open();
     pump1.turnOn();
-    hotLiquorTank.heatOn();
+    startMonitoringHltTemp(65);
 }
 
 function heatBk() {
@@ -457,7 +471,11 @@ function heatBk() {
     mValve11.close();
     mValve12.open();
     pump2.turnOn();
-    brewKettle.heatOn();
+    startMonitoringBkTemp(68);
+}
+
+function addGrains() {
+    mashTun.addGrains();
 }
 
 function strikeOrMashIn() {
@@ -474,8 +492,8 @@ function strikeOrMashIn() {
     mValve10.open();
     mValve11.close();
     mValve12.open();
-    hotLiquorTank.heatOn();
-    brewKettle.heatOff();
+    startMonitoringHltTemp(65);
+    stopMonitoringBkTemp();
 }
 
 function mash() {
@@ -492,8 +510,8 @@ function mash() {
     mValve10.close();
     mValve11.open();
     mValve12.close();
-    hotLiquorTank.heatOn();
-    brewKettle.heatOff();
+    startMonitoringHltTemp(65);
+    stopMonitoringBkTemp();
 }
 
 function sparge() {
@@ -511,8 +529,8 @@ function sparge() {
     mValve10.close();
     mValve11.open();
     mValve12.close();
-    hotLiquorTank.heatOn();
-    brewKettle.heatOff();
+    startMonitoringHltTemp(65);
+    stopMonitoringBkTemp();
 }
 
 function cool() {
@@ -525,6 +543,53 @@ function cool() {
     mValve10.open();
     mValve11.close();
     mValve12.open();
-    hotLiquorTank.heatOn();
-    brewKettle.heatOff();
+    startMonitoringHltTemp(65);
+    stopMonitoringBkTemp();
+}
+
+
+let hltTempTimer = 0;
+let bkTempTimer = 0;
+
+
+function startMonitoringHltTemp(target: number) {
+    if (hltTempTimer === 0) {
+        hltTempTimer = setInterval(() => monitorHltTemp(target), 1000);
+    }
+}
+
+function stopMonitoringHltTemp() {
+    clearInterval(hltTempTimer);
+    hltTempTimer = 0;
+}
+
+function monitorHltTemp(target: number) {
+    let t = hltThermometer.readTemperature();
+    console.log("temp: ", t, " target: ", target);
+
+    if (t < target) {
+        hotLiquorTank.heatOn();
+    } else {
+        hotLiquorTank.heatOff();
+    }
+}
+
+function startMonitoringBkTemp(target: number) {
+    if (bkTempTimer === 0) {
+        bkTempTimer = setInterval(() => monitorBkTemp(target), 1000);
+    }
+}
+
+function stopMonitoringBkTemp() {
+    clearInterval(bkTempTimer);
+    bkTempTimer = 0;
+}
+
+function monitorBkTemp(target: number) {
+    let t = bkThermometer.readTemperature();
+    if (t < target) {
+        brewKettle.heatOn();
+    } else {
+        brewKettle.heatOff();
+    }
 }

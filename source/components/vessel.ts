@@ -5,13 +5,19 @@ import { LiquidType } from "./enums";
 import { Port } from "./port";
 import { Component } from "./component";
 
+// bucket, fermenter
 class Vessel extends PIXI.Container implements Component {
-    private _name: string;
-    private liquids: Liquid[];
-    private component: Component;
-    private port: Port;
-    private readonly lineColor = 0x111111;
-    private readonly emptyColor = 0xAAAAAA;
+    protected _name: string;
+    protected _topComponentPort: Port;
+    protected topComponent: Component;
+    protected liquids: Liquid[];
+    protected waterCtr = 0;
+    protected wertCtr = 0;
+    protected sanitizerCtr = 0;
+    protected cleanerCtr = 0;
+    protected readonly lineColor = 0x111111;
+    protected readonly emptyColor = 0xAAAAAA;
+    private hasGrains = false;
 
     constructor(name: string, x: number, y: number) {
         super();
@@ -19,7 +25,7 @@ class Vessel extends PIXI.Container implements Component {
         this.x = x;
         this.y = y;
         this.liquids = new Array<Liquid>();
-        this.port = new Port(x, y - 50);
+        this._topComponentPort = new Port(x, y - 50);
         this.addChild(new PIXI.Graphics());
         let t = new PIXI.Text(this.name, new PIXI.TextStyle({ fontSize: 10 }));
         t.anchor.set(0.5, 0.5);
@@ -27,7 +33,6 @@ class Vessel extends PIXI.Container implements Component {
         let c = new PIXI.Text(this.name, new PIXI.TextStyle({ fontSize: 10 }));
         c.anchor.set(0.5, -0.5);
         this.addChild(c);
-
         this.draw();
     }
 
@@ -35,9 +40,13 @@ class Vessel extends PIXI.Container implements Component {
         return this._name;
     }
 
-    public connect(component: Component) {
-        this.component = component;
-        return this.port;
+    public get topComponentPort(): Port {
+        return this._topComponentPort;
+    }
+
+    public connectToTop(component: Component) {
+        this.topComponent = component;
+        return this.topComponentPort;
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
@@ -48,7 +57,8 @@ class Vessel extends PIXI.Container implements Component {
             return true;
         }
 
-        this.liquids.push(liquid);
+        this.addLiquid(liquid, 1);
+
         this.draw();
         return true;
     }
@@ -60,13 +70,64 @@ class Vessel extends PIXI.Container implements Component {
 
         if (this.liquids.length > 0) {
             result = this.liquids.pop();
+            this.decrementLiquidCount(result.type);
         }
 
         this.draw();
         return result;
     }
 
-    private draw() {
+    public getTemperature(): number {
+        if (this.liquids != null && this.liquids.length > 0) {
+
+            let total = 0;
+
+
+            for (let i = 0; i < this.liquids.length; i++) {
+
+                total = total + this.liquids[i].temperature;
+
+            }
+
+
+            let avg = total / this.liquids.length;
+
+            console.log("!!!!! avg = " + avg);
+
+            return avg;
+
+        } else {
+            return null;
+        }
+    }
+
+    public addGrains() {
+        this.hasGrains = true;
+        this.draw();
+    }
+
+    public dumpGrains() {
+        this.hasGrains = false;
+        this.draw();
+    }
+
+    public addLiquid(liquid: Liquid, amount: number) {
+        console.log(this.name + " addLiquid");
+        if (this.hasGrains) {
+            if (liquid.type === LiquidType.Water) {
+                liquid.type = LiquidType.Wert;
+            }
+        }
+
+        for (let i = 0; i < amount; i++) {
+            this.incrementLiquidCount(liquid.type);
+            this.liquids.push(liquid);
+        }
+
+        this.draw();
+    }
+
+    protected draw() {
         let g = <PIXI.Graphics>this.getChildAt(0);
         g.clear();
         g.lineStyle(1, this.lineColor);
@@ -76,23 +137,21 @@ class Vessel extends PIXI.Container implements Component {
         this.children[0] = g;
 
         let c = <PIXI.Text>this.getChildAt(2);
-
         c.text = this.liquids.length.toString();
         this.children[2] = c;
     }
 
-    private getColor(): number {
-        if (this.liquids != null && this.liquids.length > 0) {
+    protected getColor(): number {
 
-            let total = 0;
-            for (let i = 0; i < this.liquids.length; i++) {
-                total = total + this.liquids[i].temperature;
-            }
-            let avg = total / this.liquids.length;
+        let temperature = this.getTemperature();
+
+        if (temperature > 0) {
+
+            let type = this.getLargestConcentration();
 
             let hotColor = 0;
 
-            switch (this.liquids[0].type) { // ToDo: fix this...
+            switch (type) {
 
                 case LiquidType.Water:
                     hotColor = 0xA8A8FF;
@@ -107,15 +166,15 @@ class Vessel extends PIXI.Container implements Component {
                     hotColor = 0xCCFF33;
                     break;
             }
-
-            return this.blend(this.liquids[0].type, hotColor, avg);
+            return this.blend(type, hotColor, temperature);
 
         } else {
             return this.emptyColor;
         }
+
     }
 
-    private blend(color1: number, color2: number, amount: number): number {
+    protected blend(color1: number, color2: number, amount: number): number {
 
         let oldMin = 0;
         let oldMax = 100;
@@ -144,6 +203,66 @@ class Vessel extends PIXI.Container implements Component {
         return parseInt(c.replace(/^#/, ""), 16);
 
     }
-}
 
+    protected getLargestConcentration(): LiquidType {
+
+        if (this.waterCtr === 0 &&
+            this.wertCtr === 0 &&
+            this.sanitizerCtr === 0 &&
+            this.cleanerCtr === 0) {
+            return null;
+        }
+
+        let result = LiquidType.Water;
+        let most = this.waterCtr;
+
+        if (this.wertCtr > most) {
+            result = LiquidType.Wert;
+            most = this.wertCtr;
+        } else if (this.sanitizerCtr > most) {
+            result = LiquidType.Sanitizer;
+            most = this.sanitizerCtr;
+        } else if (this.cleanerCtr > most) {
+            result = LiquidType.Cleaner;
+        }
+
+        return result;
+    }
+
+    protected incrementLiquidCount(type: LiquidType) {
+        switch (type) {
+
+            case LiquidType.Water:
+                this.waterCtr++;
+                break;
+            case LiquidType.Wert:
+                this.wertCtr++;
+                break;
+            case LiquidType.Sanitizer:
+                this.sanitizerCtr++;
+                break;
+            case LiquidType.Cleaner:
+                this.cleanerCtr++;
+                break;
+        }
+    }
+
+    protected decrementLiquidCount(type: LiquidType) {
+        switch (type) {
+
+            case LiquidType.Water:
+                this.waterCtr--;
+                break;
+            case LiquidType.Wert:
+                this.wertCtr--;
+                break;
+            case LiquidType.Sanitizer:
+                this.sanitizerCtr--;
+                break;
+            case LiquidType.Cleaner:
+                this.cleanerCtr--;
+                break;
+        }
+    }
+}
 export default Vessel;

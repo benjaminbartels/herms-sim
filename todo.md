@@ -1,7 +1,7 @@
 # ToDo
 
 - [X] Tank valves aren't draining
-- [ ] Implement Thermometers
+- [X] Implement Thermometers
 - [X] Find better way to determine tank colors 
 - [ ] Make Tee and Cross orientation aware
 - [X] Make Faucet orientation aware
@@ -12,8 +12,8 @@
 - [ ] Transfer Heat (water to neighbor water, element to water, cfc to wert)
 - [X] Vary color based on temperature, Water: Blue(cool) -> Red(hot), Wert: Yellow(hot) -> Brown(cool)
 - [ ] Make other States (Sanitize, Clean, etc.)
-- [ ] Make and implement base classes
+- [X] Make and implement base classes
 - [ ] Implement better connection creation
 - [ ] Drain ins counting 'Air''
 - [ ] Evaluate Accessors
-- [ ] Merge Vessel and Tank 
+- [X] Merge Vessel and Tank 

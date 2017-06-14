@@ -232,7 +232,6 @@ class Cross extends Fixture {
         }
         this.draw();
         this.drainTimer = setInterval(() => this.drain(), this.drainInterval);
-        console.log("!cross fill result=", result);
         return result;
     }
 

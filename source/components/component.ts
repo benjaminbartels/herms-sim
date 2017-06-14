@@ -5,4 +5,5 @@ export interface Component {
 
     fill(source: Component, liquid: Liquid): boolean;
     suck(source: Component): Liquid;
+    getTemperature(): number;
 }
