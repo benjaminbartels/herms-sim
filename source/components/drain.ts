@@ -47,7 +47,6 @@ class Drain extends Fixture {
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source.name);
         this.count++;
         this.draw();
         return true;

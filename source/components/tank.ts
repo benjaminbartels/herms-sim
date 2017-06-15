@@ -3,6 +3,7 @@ import { Liquid } from "./liquid";
 import { Port } from "./Port";
 import { Component } from "./component";
 import Vessel from "./vessel";
+import { LiquidType } from "./enums";
 
 // mashtun
 export class Tank extends Vessel {
@@ -10,6 +11,9 @@ export class Tank extends Vessel {
     protected bottomComponent: Component;
     protected drainTimer: number;
     private readonly drainInterval = 1000;
+    private readonly grainColor = 0x954535;
+    private hasGrains = false;
+
 
     constructor(name: string, x: number, y: number) {
         super(name, x, y);
@@ -29,10 +33,8 @@ export class Tank extends Vessel {
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " fill (tank) - source: " + source.name);
 
         if (liquid == null) {
-            console.log(this.name + " fill - null liquid");
             return true;
         }
 
@@ -51,7 +53,6 @@ export class Tank extends Vessel {
     }
 
     public suck(source: Component): Liquid {
-        console.log(this.name + " suck - source: " + source.name);
 
         let result = null;
 
@@ -60,14 +61,41 @@ export class Tank extends Vessel {
             console.warn(this.name + " suck - Can't suck out of the top port of Tank.");
         } else if (this.bottomComponent != null && this.bottomComponent.name === source.name) {
             if (this.liquids.length > 0) {
-                result = this.liquids.pop();
+                let type = this.getLargestConcentration();
+                result = this.liquids.shift();
                 this.decrementLiquidCount(result.type);
+                result.type = type;
             }
         }
         this.drainTimer = setInterval(() => this.drain(), this.drainInterval);
 
         this.draw();
         return result;
+    }
+
+    public addGrains() {
+        this.hasGrains = true;
+        this.draw();
+    }
+
+    public dumpGrains() {
+        this.hasGrains = false;
+        this.draw();
+    }
+
+    public addLiquid(liquid: Liquid, amount: number) {
+        if (this.hasGrains) {
+            if (liquid.type === LiquidType.Water) {
+                liquid.type = LiquidType.Wert;
+            }
+        }
+
+        for (let i = 0; i < amount; i++) {
+            this.incrementLiquidCount(liquid.type);
+            this.liquids.push(liquid);
+        }
+
+        this.draw();
     }
 
     protected draw() {
@@ -77,6 +105,13 @@ export class Tank extends Vessel {
         g.beginFill(this.getColor());
         g.drawRect(-75, -100, 150, 200);
         g.endFill();
+
+        if (this.hasGrains) {
+            g.beginFill(this.grainColor);
+            g.drawRect(-70, 20, 140, 75);
+            g.endFill();
+        }
+
         this.children[0] = g;
 
         let c = <PIXI.Text>this.getChildAt(2);
@@ -85,14 +120,14 @@ export class Tank extends Vessel {
     }
 
     protected drain() {
-        console.log(this.name + " drain" + this.liquids.length.toString());
-
         if (this.liquids.length > 0) {
 
-            let liquid = this.liquids.pop();
+            let type = this.getLargestConcentration();
+            let liquid = this.liquids.shift();
             this.decrementLiquidCount(liquid.type);
             let originalType = liquid.type;
-            liquid.type = this.getLargestConcentration();
+            liquid.type = type;
+
             let result = this.bottomComponent.fill(this, liquid);
 
             if (result) {

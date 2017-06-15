@@ -58,7 +58,6 @@ class BallValve extends Fixture {
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source.name);
 
         let result = false;
 
@@ -88,7 +87,6 @@ class BallValve extends Fixture {
     }
 
     public suck(source: Component): Liquid {
-        console.log(this.name + " suck - source: " + source.name);
 
         let returnLiquid = null;
 

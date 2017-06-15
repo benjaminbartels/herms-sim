@@ -28,7 +28,6 @@ export class HeatExchangerTank extends HeatedTank {
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " fill (HeatExchangerTank) - source: " + source.name);
 
         let result = false;
 
@@ -64,7 +63,7 @@ export class HeatExchangerTank extends HeatedTank {
     }
 
     public suck(source: Component): Liquid {
-        console.log(this.name + " suck - source: " + source.name);
+
 
         let returnLiquid = null;
 

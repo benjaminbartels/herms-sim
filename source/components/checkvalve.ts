@@ -48,7 +48,6 @@ class CheckValve extends Fixture {
 
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " suck - source: " + source.name);
 
         if (this.outComponent != null && source.name === this.outComponent.name) {
             console.warn(this.name + " fill - Can't fill into the out port of check valve.");
@@ -79,7 +78,6 @@ class CheckValve extends Fixture {
     }
 
     public suck(source: Component): Liquid {
-        console.log(this.name + " suck - source: " + source.name);
 
         if (this.inComponent != null && source.name === this.inComponent.name) {
             console.warn(this.name + " suck - Can't suck out of the in port of check valve.");

@@ -45,8 +45,6 @@ class Tee extends Fixture {
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source.name);
-
         let result = false;
 
         clearTimeout(this.drainTimer);
@@ -57,9 +55,6 @@ class Tee extends Fixture {
         } else {
 
             if (this.componentA != null && this.componentA.name === source.name) {
-
-                // console.log(this.name + " fill - from A " + liquid.id);
-
                 if (this.lastFill === "B") {
                     result = this.componentC.fill(this, this.liquid);
                     this.lastFill = "C";
@@ -78,8 +73,6 @@ class Tee extends Fixture {
                     }
                 }
             } else if (this.componentB != null && this.componentB.name === source.name) {
-                // console.log(this.name + " fill - from B " + liquid.id);
-
                 if (this.lastFill === "A") {
                     result = this.componentC.fill(this, this.liquid);
                     this.lastFill = "C";
@@ -98,8 +91,6 @@ class Tee extends Fixture {
                     }
                 }
             } else if (this.componentC != null && this.componentC.name === source.name) {
-                // console.log(this.name + " fill - from C" + liquid.id);
-
                 if (this.lastFill === "A") {
                     result = this.componentB.fill(this, this.liquid);
                     this.lastFill = "B";
@@ -129,7 +120,7 @@ class Tee extends Fixture {
     }
 
     public suck(source: any): Liquid {
-        console.log(this.name + " suck - source: " + source.name);
+
 
         let returnLiquid = this.liquid;
 

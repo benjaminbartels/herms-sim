@@ -17,7 +17,6 @@ class Vessel extends PIXI.Container implements Component {
     protected cleanerCtr = 0;
     protected readonly lineColor = 0x111111;
     protected readonly emptyColor = 0xAAAAAA;
-    private hasGrains = false;
 
     constructor(name: string, x: number, y: number) {
         super();
@@ -50,10 +49,7 @@ class Vessel extends PIXI.Container implements Component {
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source);
-
         if (liquid == null) {
-            console.log(this.name + " fill - null liquid");
             return true;
         }
 
@@ -64,12 +60,11 @@ class Vessel extends PIXI.Container implements Component {
     }
 
     public suck(source: Component): Liquid {
-        console.log(this.name + " suck - source: " + source);
 
         let result = null;
 
         if (this.liquids.length > 0) {
-            result = this.liquids.pop();
+            result = this.liquids.shift();
             this.decrementLiquidCount(result.type);
         }
 
@@ -92,8 +87,6 @@ class Vessel extends PIXI.Container implements Component {
 
             let avg = total / this.liquids.length;
 
-            console.log("!!!!! avg = " + avg);
-
             return avg;
 
         } else {
@@ -101,23 +94,7 @@ class Vessel extends PIXI.Container implements Component {
         }
     }
 
-    public addGrains() {
-        this.hasGrains = true;
-        this.draw();
-    }
-
-    public dumpGrains() {
-        this.hasGrains = false;
-        this.draw();
-    }
-
     public addLiquid(liquid: Liquid, amount: number) {
-        console.log(this.name + " addLiquid");
-        if (this.hasGrains) {
-            if (liquid.type === LiquidType.Water) {
-                liquid.type = LiquidType.Wert;
-            }
-        }
 
         for (let i = 0; i < amount; i++) {
             this.incrementLiquidCount(liquid.type);

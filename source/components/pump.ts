@@ -50,12 +50,10 @@ class Pump extends Fixture {
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source);
         return false;
     }
 
     public suck(source: Component): Liquid {
-        console.log(this.name + " suck - source: " + source);
         return null;
     }
 

@@ -36,7 +36,6 @@ class CounterFlowChiller extends Fixture {
     }
 
     public fill(source: Component, liquid: Liquid): boolean {
-        console.log(this.name + " fill - source: " + source.name);
 
         let result = false;
 
@@ -54,6 +53,11 @@ class CounterFlowChiller extends Fixture {
                 }
                 if (result) {
                     this.liquid = liquid;
+
+                    if (this.waterLiquid != null && this.liquid != null
+                        && this.waterLiquid.temperature < this.liquid.temperature) {
+                        this.liquid.temperature--;
+                    }
                 }
             }
             this.drainTimer = setInterval(() => this.drain(), this.drainInterval); // ToDo: move drain to Fixture
@@ -82,7 +86,6 @@ class CounterFlowChiller extends Fixture {
     }
 
     public suck(source: Component): Liquid {
-        console.log(this.name + " suck - source: " + source.name);
 
         let result = null;
         if ((this.wertInComponent != null && this.wertInComponent.name === source.name) ||
@@ -95,6 +98,10 @@ class CounterFlowChiller extends Fixture {
                 this.liquid = this.wertInComponent.suck(this);
             }
 
+            if (this.waterLiquid != null && this.liquid != null
+                && this.waterLiquid.temperature < this.liquid.temperature) {
+                this.liquid.temperature--;
+            }
 
         } else if ((this.waterInComponent != null && this.waterInComponent.name === source.name) ||
             (this.waterOutComponent != null && this.waterOutComponent.name === source.name)) {

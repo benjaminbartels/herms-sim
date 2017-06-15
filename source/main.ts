@@ -418,6 +418,7 @@ document.getElementById("strikeOrMashIn").addEventListener("click", () => strike
 document.getElementById("mash").addEventListener("click", () => mash());
 document.getElementById("sparge").addEventListener("click", () => sparge());
 document.getElementById("cool").addEventListener("click", () => cool());
+document.getElementById("fillFermenter").addEventListener("click", () => fillFermenter());
 
 
 function fullStop() {
@@ -543,10 +544,22 @@ function cool() {
     mValve10.open();
     mValve11.close();
     mValve12.open();
-    startMonitoringHltTemp(65);
+    stopMonitoringHltTemp();
     stopMonitoringBkTemp();
 }
 
+function fillFermenter() {
+
+    pump1.turnOff();
+    pump2.turnOn();
+    mValve6.close();
+    mValve9.close();
+    mValve10.open();
+    mValve11.close();
+    mValve12.close();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
 
 let hltTempTimer = 0;
 let bkTempTimer = 0;
@@ -565,7 +578,6 @@ function stopMonitoringHltTemp() {
 
 function monitorHltTemp(target: number) {
     let t = hltThermometer.readTemperature();
-    console.log("temp: ", t, " target: ", target);
 
     if (t < target) {
         hotLiquorTank.heatOn();
