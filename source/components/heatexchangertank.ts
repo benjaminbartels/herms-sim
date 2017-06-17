@@ -52,6 +52,12 @@ export class HeatExchangerTank extends HeatedTank {
                 }
                 if (result) {
                     this.coilLiquid = liquid;
+
+                    if (this.coilLiquid != null && this.liquids.length > 0
+                        && this.coilLiquid.temperature < this.getTemperature()) {
+                        this.coilLiquid.temperature--;
+                    }
+
                 }
             }
 

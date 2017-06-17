@@ -77,13 +77,9 @@ class Vessel extends PIXI.Container implements Component {
 
             let total = 0;
 
-
             for (let i = 0; i < this.liquids.length; i++) {
-
                 total = total + this.liquids[i].temperature;
-
             }
-
 
             let avg = total / this.liquids.length;
 

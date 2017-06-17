@@ -14,6 +14,8 @@ import HeatedTank from "./components/heatedtank";
 import Vessel from "./components/vessel";
 import Drain from "./components/drain";
 import Thermometer from "./components/thermometer";
+import { Liquid } from "./components/liquid";
+import { LiquidType } from "./components/enums";
 
 let app = new PIXI.Application(1200, 1200, { antialias: true });
 app.renderer.backgroundColor = 0xFFFFFF;
@@ -419,7 +421,20 @@ document.getElementById("mash").addEventListener("click", () => mash());
 document.getElementById("sparge").addEventListener("click", () => sparge());
 document.getElementById("cool").addEventListener("click", () => cool());
 document.getElementById("fillFermenter").addEventListener("click", () => fillFermenter());
-
+document.getElementById("dumpGrains").addEventListener("click", () => dumpGrains());
+document.getElementById("cip1").addEventListener("click", () => cip1());
+document.getElementById("cip2").addEventListener("click", () => cip2());
+document.getElementById("cip3").addEventListener("click", () => cip3());
+document.getElementById("cip4").addEventListener("click", () => cip4());
+document.getElementById("cip1Hot").addEventListener("click", () => cip1Hot());
+document.getElementById("cip2Hot").addEventListener("click", () => cip2Hot());
+document.getElementById("cip3Hot").addEventListener("click", () => cip3Hot());
+document.getElementById("cip4Hot").addEventListener("click", () => cip4Hot());
+document.getElementById("addSanitizer").addEventListener("click", () => addSanitizer());
+document.getElementById("sanitize1").addEventListener("click", () => sanitize1());
+document.getElementById("sanitize2").addEventListener("click", () => sanitize2());
+document.getElementById("sanitize3").addEventListener("click", () => sanitize3());
+document.getElementById("sanitize4").addEventListener("click", () => sanitize4());
 
 function fullStop() {
     mValve1.close();
@@ -439,6 +454,7 @@ function fullStop() {
     stopMonitoringHltTemp();
     stopMonitoringBkTemp();
 }
+
 
 function fillHlt() {
     mValve1.close();
@@ -556,6 +572,246 @@ function fillFermenter() {
     mValve9.close();
     mValve10.open();
     mValve11.close();
+    mValve12.close();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function dumpGrains() {
+    mashTun.dumpGrains();
+}
+
+// top up
+
+function cip1() {
+    pump1.turnOff();
+    pump2.turnOn();
+    mValve1.open();
+    mValve2.close();
+    mValve3.close();
+    mValve4.open();
+    mValve5.close();
+    mValve6.open();
+    mValve7.open();
+    mValve8.close();
+    mValve9.close();
+    mValve10.open();
+    mValve11.close();
+    mValve12.open();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function cip2() {
+    pump1.turnOff();
+    pump2.turnOn();
+    mValve1.open();
+    mValve2.close();
+    mValve3.open();
+    mValve4.close();
+    mValve5.close();
+    mValve6.close();
+    mValve7.close();
+    mValve8.close();
+    mValve9.open();
+    mValve10.close();
+    mValve11.close();
+    mValve12.open();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function cip3() {
+    pump1.turnOff();
+    pump2.turnOff();
+    mValve1.open();
+    mValve2.close();
+    mValve3.close();
+    mValve4.open();
+    mValve5.open();
+    mValve6.close();
+    mValve7.close();
+    mValve8.close();
+    mValve9.close();
+    mValve10.close();
+    mValve11.open();
+    mValve12.open();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function cip4() {
+    pump1.turnOff();
+    pump2.turnOff();
+    mValve1.open();
+    mValve2.close();
+    mValve3.close();
+    mValve4.open();
+    mValve5.close();
+    mValve6.open();
+    mValve7.close();
+    mValve8.open();
+    mValve9.close();
+    mValve10.close();
+    mValve11.close();
+    mValve12.close();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function cip1Hot() {
+    pump1.turnOn();
+    pump2.turnOn();
+    mValve1.open();
+    mValve2.open();
+    mValve3.close();
+    mValve4.open();
+    mValve5.close();
+    mValve6.open();
+    mValve7.open();
+    mValve8.close();
+    mValve9.close();
+    mValve10.open();
+    mValve11.close();
+    mValve12.open();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+
+function cip2Hot() {
+    pump1.turnOn();
+    pump2.turnOn();
+    mValve1.open();
+    mValve2.open();
+    mValve3.open();
+    mValve4.close();
+    mValve5.close();
+    mValve6.close();
+    mValve7.close();
+    mValve8.close();
+    mValve9.open();
+    mValve10.close();
+    mValve11.close();
+    mValve12.open();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function cip3Hot() {
+    pump1.turnOn();
+    pump2.turnOff();
+    mValve1.open();
+    mValve2.open();
+    mValve3.close();
+    mValve4.open();
+    mValve5.open();
+    mValve6.close();
+    mValve7.close();
+    mValve8.close();
+    mValve9.close();
+    mValve10.close();
+    mValve11.open();
+    mValve12.open();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function cip4Hot() {
+    pump1.turnOn();
+    pump2.turnOff();
+    mValve1.open();
+    mValve2.open();
+    mValve3.close();
+    mValve4.open();
+    mValve5.close();
+    mValve6.open();
+    mValve7.close();
+    mValve8.open();
+    mValve9.close();
+    mValve10.close();
+    mValve11.close();
+    mValve12.close();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function addSanitizer() {
+    let s = new Liquid(0, LiquidType.Sanitizer, 23);
+    bucket.addLiquid(s, 200);
+}
+
+function sanitize1() {
+    pump1.turnOn();
+    pump2.turnOff();
+    mValve1.open();
+    mValve2.close();
+    mValve3.close();
+    mValve4.open();
+    mValve5.close();
+    mValve6.open();
+    mValve7.open();
+    mValve8.close();
+    mValve9.close();
+    mValve10.close();
+    mValve11.close();
+    mValve12.close();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function sanitize2() {
+    pump1.turnOff();
+    pump2.turnOn();
+    mValve1.close();
+    mValve2.close();
+    mValve3.open();
+    mValve4.open();
+    mValve5.open();
+    mValve6.close();
+    mValve7.close();
+    mValve8.close();
+    mValve9.close();
+    mValve10.open();
+    mValve11.open();
+    mValve12.close();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function sanitize3() {
+    pump1.turnOff();
+    pump2.turnOn();
+    mValve1.close();
+    mValve2.close();
+    mValve3.open();
+    mValve4.open();
+    mValve5.close();
+    mValve6.open();
+    mValve7.close();
+    mValve8.open();
+    mValve9.open();
+    mValve10.close();
+    mValve11.close();
+    mValve12.open();
+    stopMonitoringHltTemp();
+    stopMonitoringBkTemp();
+}
+
+function sanitize4() {
+    pump1.turnOff();
+    pump2.turnOn();
+    mValve1.close();
+    mValve2.close();
+    mValve3.close();
+    mValve4.close();
+    mValve5.close();
+    mValve6.close();
+    mValve7.close();
+    mValve8.close();
+    mValve9.open();
+    mValve10.close();
+    mValve11.open();
     mValve12.close();
     stopMonitoringHltTemp();
     stopMonitoringBkTemp();
