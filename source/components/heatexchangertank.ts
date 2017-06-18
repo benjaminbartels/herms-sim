@@ -39,7 +39,7 @@ export class HeatExchangerTank extends HeatedTank {
         } else if ((this.coilTopComponent != null && this.coilTopComponent.name === source.name) ||
             (this.coilBottomComponent != null && this.coilBottomComponent.name === source.name)) {
 
-            clearTimeout(this.coilTimer);
+            clearInterval(this.coilTimer);
 
             if (this.coilLiquid == null && liquid != null) {
                 this.coilLiquid = liquid;
@@ -125,11 +125,13 @@ export class HeatExchangerTank extends HeatedTank {
 
             if (result) {
                 this.coilLiquid = null;
-                clearTimeout(this.coilTimer);
+                this.draw();
             } else {
                 console.error(this.name + " drain - failed");
             }
         }
+
+        clearInterval(this.coilTimer);
     }
 }
 export default HeatExchangerTank;

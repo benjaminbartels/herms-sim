@@ -56,7 +56,7 @@ export class Tank extends Vessel {
 
         let result = null;
 
-        clearTimeout(this.drainTimer);
+        clearInterval(this.drainTimer);
         if (this.topComponent != null && this.topComponent.name === source.name) {
             console.warn(this.name + " suck - Can't suck out of the top port of Tank.");
         } else if (this.bottomComponent != null && this.bottomComponent.name === source.name) {
@@ -131,7 +131,7 @@ export class Tank extends Vessel {
             let result = this.bottomComponent.fill(this, liquid);
 
             if (result) {
-                clearTimeout(this.drainTimer);
+                clearInterval(this.drainTimer);
             } else {
                 liquid.type = originalType;
                 this.incrementLiquidCount(liquid.type);

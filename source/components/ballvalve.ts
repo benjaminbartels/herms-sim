@@ -17,7 +17,7 @@ class BallValve extends Fixture {
     private readonly closedColor = 0x85144b;    // Maroon
     private readonly unpoweredColor = 0x001F3F; // Navy
     private readonly poweredColor = 0xFFDC00;   // Yellow
-    private readonly drainInterval = 100;
+    private readonly drainInterval = 1000;
 
     constructor(name: string, x: number, y: number, orientation: Orientation, isMotorized: boolean) {
         super(name, x, y, orientation);
@@ -63,7 +63,7 @@ class BallValve extends Fixture {
 
         if (this.isOpen) {
 
-            clearTimeout(this.drainTimer);
+            clearInterval(this.drainTimer);
 
             if (this.liquid == null && liquid != null) {
                 this.liquid = liquid;
@@ -152,14 +152,14 @@ class BallValve extends Fixture {
             }
 
             if (result) {
-
                 this.liquid = null;
-                clearTimeout(this.drainTimer);
                 this.draw();
             } else {
                 console.warn(this.name + " drain - failed");
             }
         }
+
+        clearInterval(this.drainTimer);
     }
 
     private draw() {

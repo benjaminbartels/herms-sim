@@ -27,7 +27,7 @@ class Tube extends Fixture {
     public fill(source: Component, liquid: Liquid): boolean {
         let result = false;
 
-        clearTimeout(this.drainTimer);
+        clearInterval(this.drainTimer);
 
         if (this.liquid == null && liquid != null) {
             this.liquid = liquid;
@@ -92,12 +92,13 @@ class Tube extends Fixture {
 
             if (result) {
                 this.liquid = null;
-                clearTimeout(this.drainTimer);
                 this.draw();
             } else {
                 console.error(this.name + " drain - failed");
             }
         }
+
+        clearInterval(this.drainTimer);
     }
 
     private draw() {

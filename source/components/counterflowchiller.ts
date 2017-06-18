@@ -41,7 +41,7 @@ class CounterFlowChiller extends Fixture {
 
         if ((this.wertInComponent != null && this.wertInComponent.name === source.name) ||
             (this.wertOutComponent != null && this.wertOutComponent.name === source.name)) {
-            clearTimeout(this.drainTimer);
+            clearInterval(this.drainTimer);
             if (this.liquid == null && liquid != null) {
                 this.liquid = liquid;
                 result = true;
@@ -64,7 +64,7 @@ class CounterFlowChiller extends Fixture {
         } else if ((this.waterInComponent != null && this.waterInComponent.name === source.name) ||
 
             (this.waterOutComponent != null && this.waterOutComponent.name === source.name)) {
-            clearTimeout(this.waterDrainTimer);
+            clearInterval(this.waterDrainTimer);
             if (this.waterLiquid == null && liquid != null) {
                 this.waterLiquid = liquid;
                 result = true;
@@ -78,7 +78,7 @@ class CounterFlowChiller extends Fixture {
                     this.waterLiquid = liquid;
                 }
             }
-            this.waterDrainTimer = setInterval(() => this.drain(), this.waterDrainInterval);
+            this.waterDrainTimer = setInterval(() => this.drainWater(), this.waterDrainInterval);
         }
 
         this.draw();
@@ -147,12 +147,18 @@ class CounterFlowChiller extends Fixture {
 
             if (result) {
                 this.liquid = null;
-                clearTimeout(this.drainTimer);
+                clearInterval(this.drainTimer);
                 this.draw();
             } else {
                 console.error(this.name + " drain - failed");
             }
         }
+
+        clearInterval(this.drainTimer);
+    }
+
+    private drainWater() {
+        console.log(this.name + " drainWater");
 
         if (this.waterLiquid != null) {
 
@@ -160,12 +166,13 @@ class CounterFlowChiller extends Fixture {
 
             if (result) {
                 this.waterLiquid = null;
-                clearTimeout(this.waterDrainTimer);
                 this.draw();
             } else {
                 console.error(this.name + " drain - failed");
             }
         }
+
+        clearInterval(this.waterDrainTimer);
     }
 
     private draw() {

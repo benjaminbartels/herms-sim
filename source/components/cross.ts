@@ -16,7 +16,7 @@ class Cross extends Fixture {
     private lastFill: string;
     private lastSuck: string;
     private drainTimer: number;
-    private readonly drainInterval = 500;
+    private readonly drainInterval = 1000;
     private readonly size = 5;
 
     constructor(name: string, x: number, y: number) {
@@ -56,7 +56,7 @@ class Cross extends Fixture {
 
         let result = false;
 
-        clearTimeout(this.drainTimer);
+        clearInterval(this.drainTimer);
 
         if (this.liquid == null && liquid != null) {
             this.liquid = liquid;
@@ -408,10 +408,11 @@ class Cross extends Fixture {
 
             if (result) {
                 this.liquid = null;
-                clearTimeout(this.drainTimer);
                 this.draw();
             }
         }
+
+        clearInterval(this.drainTimer);
     }
 
     private draw() {

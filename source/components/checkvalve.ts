@@ -12,7 +12,7 @@ class CheckValve extends Fixture {
     public outComponentPort: Port;
     private readonly lineColor = 0x111111;
     private drainTimer: number;
-    private readonly drainInterval = 100;
+    private readonly drainInterval = 1000;
 
     constructor(name: string, x: number, y: number, orientation: Orientation) {
         super(name, x, y, orientation);
@@ -56,7 +56,7 @@ class CheckValve extends Fixture {
 
         let result = false;
 
-        clearTimeout(this.drainTimer);
+        clearInterval(this.drainTimer);
 
         if (this.liquid == null && liquid != null) {
             this.liquid = liquid;
@@ -110,12 +110,13 @@ class CheckValve extends Fixture {
 
             if (result) {
                 this.liquid = null;
-                clearTimeout(this.drainTimer);
                 this.draw();
             } else {
                 console.error(this.name + " drain - failed");
             }
         }
+
+        clearInterval(this.drainTimer);
     }
 
     private draw() {

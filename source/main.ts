@@ -450,7 +450,7 @@ function fullStop() {
     mValve11.close();
     mValve12.close();
     pump1.turnOff();
-    pump2.turnOn();
+    pump2.turnOff();
     stopMonitoringHltTemp();
     stopMonitoringBkTemp();
 }
@@ -811,7 +811,7 @@ function sanitize4() {
     mValve8.close();
     mValve9.open();
     mValve10.close();
-    mValve11.open();
+    mValve11.close();
     mValve12.close();
     stopMonitoringHltTemp();
     stopMonitoringBkTemp();

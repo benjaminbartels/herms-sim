@@ -4,6 +4,4 @@
 - [ ] Implement better connection creation
 - [ ] Drain ins counting 'Air''
 - [ ] Evaluate Accessors
-- [ ] Implement vue.js cli with typescript
 - [ ] CI & Dockerize
-\
