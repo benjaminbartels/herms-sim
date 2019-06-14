@@ -1,5 +1,5 @@
 import { LiquidType } from "./enums";
-import * as tinycolor from "tinycolor2";
+import tinycolor from "tinycolor2";
 
 export class Liquid {
     public id: number;
@@ -46,6 +46,8 @@ export class Liquid {
         let newRange = (newMax - newMin);
 
         amount = (((amount - oldMin) * newRange) / oldRange) + newMin;
+
+        tinycolor.fromRatio
 
         let rgb1 = tinycolor(color1.toString(16)).toRgb();
         let rgb2 = tinycolor(color2.toString(16)).toRgb();

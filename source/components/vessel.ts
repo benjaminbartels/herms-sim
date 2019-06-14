@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import * as tinycolor from "tinycolor2";
+import tinycolor from "tinycolor2";
 import { Liquid } from "./liquid";
 import { LiquidType } from "./enums";
 import { Port } from "./port";
