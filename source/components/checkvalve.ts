@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Orientation } from "./enums";
 import { Liquid } from "./liquid";
-import { Port } from "./Port";
+import { Port } from "./port";
 import { Component } from "./component";
 import { Fixture } from "./fixture";
 
