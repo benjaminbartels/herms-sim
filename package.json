@@ -44,7 +44,7 @@
     "wallabify": "0.0.15"
   },
   "dependencies": {
-    "jquery": "^3.1.1",
+    "jquery": "^3.5.0",
     "pixi.js": "^4.5.2",
     "tinycolor2": "^1.4.1",
     "tsify": "^3.0.1"
